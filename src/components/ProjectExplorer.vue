@@ -55,7 +55,7 @@ function onClick(item: ExplorerItem) {
             'translate-x-0 opacity-100': isExplorerOpened,
         }"
     >
-        <button
+        <div
             v-for="item in tree"
             :key="toKey(item.path)"
             class="transparent-clickable group flex h-8 w-full items-center"
@@ -121,6 +121,6 @@ function onClick(item: ExplorerItem) {
             >
                 <IconTrash class="icon" />
             </button>
-        </button>
+        </div>
     </div>
 </template>
