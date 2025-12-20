@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
+import { useClipboard } from '../../composables/clipboard'
 import { useView } from '../../composables/view'
 import { type Background } from '../../core/background'
 import { getImageInfo } from '../../core/utils'
+import IconClone from '../../icons/clone-solid.svg?component'
+import IconPaste from '../../icons/file-solid.svg?component'
+import MyButton from '../ui/MyButton.vue'
 import MyColorInput from '../ui/MyColorInput.vue'
 import MyField from '../ui/MyField.vue'
 import MyImageInput from '../ui/MyImageInput.vue'
@@ -18,6 +22,8 @@ import PreviewBackground from './previews/PreviewBackground.vue'
 const props = defineProps<{
     data: Background
 }>()
+
+const { copy, paste } = useClipboard()
 
 const v = useView(props, 'backgrounds')
 
@@ -39,6 +45,13 @@ const useNaturalAspectRatio = computed({
 </script>
 
 <template>
+    <MySection header="Clipboard">
+        <div class="flex gap-2">
+            <MyButton :icon="IconClone" text="Copy" @click="copy('background', v)" />
+            <MyButton :icon="IconPaste" text="Paste" @click="paste('background', v)" />
+        </div>
+    </MySection>
+
     <MySection header="Info">
         <MyField title="Title">
             <MyTextInput v-model="v.title" placeholder="Enter background title..." validate />

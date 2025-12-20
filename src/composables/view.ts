@@ -1,4 +1,4 @@
-import { computed, type Ref, toRaw } from 'vue'
+import { computed, type Ref, ref, toRaw, watch } from 'vue'
 import { type ProjectItemTypeOf } from '../core/project'
 import { clone } from '../core/utils'
 import { push, useState } from './state'
@@ -10,7 +10,17 @@ export function useView<T extends object, U = T>(
 ): Ref<U> {
     const { project, view } = useState()
 
-    const v = computed(() => bind(toRaw(props.data), ['data']))
+    const localData = ref(props.data) as Ref<T>
+
+    watch(
+        () => props.data,
+        (newValue) => {
+            localData.value = newValue
+        },
+        { deep: true },
+    )
+
+    const v = computed(() => bind(toRaw(localData.value), ['data']))
     return getter ? computed(() => getter(v, view)) : (v as never)
 
     function bind<T extends object>(data: T, path: string[]): T {
@@ -33,7 +43,10 @@ export function useView<T extends object, U = T>(
     }
 
     function update(path: string[], value: unknown) {
-        const newProps = clone(props)
+        updateLocalData(localData.value, path.slice(1), value)
+
+        const newProps = { ...props, data: clone(localData.value) }
+
         path.reduce(
             (data, key, index) =>
                 index === path.length - 1
@@ -53,5 +66,18 @@ export function useView<T extends object, U = T>(
             },
             path.join('.'),
         )
+    }
+
+    function updateLocalData(target: unknown, path: string[], value: unknown) {
+        path.reduce((acc, key, index) => {
+            const obj = acc as Record<string, unknown>
+
+            if (index === path.length - 1) {
+                obj[key] = value
+                return value
+            }
+
+            return obj[key]
+        }, target)
     }
 }
