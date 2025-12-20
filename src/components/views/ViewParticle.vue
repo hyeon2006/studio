@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { useClipboard } from '../../composables/clipboard'
 import { useView } from '../../composables/view'
 import { type Particle } from '../../core/particle'
+import IconClone from '../../icons/clone-solid.svg?component'
+import IconPaste from '../../icons/file-solid.svg?component'
+import MyButton from '../ui/MyButton.vue'
 import MyField from '../ui/MyField.vue'
 import MyImageInput from '../ui/MyImageInput.vue'
 import MySection from '../ui/MySection.vue'
@@ -12,10 +16,19 @@ const props = defineProps<{
     data: Particle
 }>()
 
+const { copy, paste } = useClipboard()
+
 const v = useView(props, 'particles')
 </script>
 
 <template>
+    <MySection header="Clipboard">
+        <div class="flex gap-2">
+            <MyButton :icon="IconClone" text="Copy" @click="copy('particle', v)" />
+            <MyButton :icon="IconPaste" text="Paste" @click="paste('particle', v)" />
+        </div>
+    </MySection>
+
     <MySection header="Info">
         <MyField title="Title">
             <MyTextInput v-model="v.title" placeholder="Enter particle title..." validate />

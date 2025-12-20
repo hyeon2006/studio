@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useClipboard } from '../../composables/clipboard'
 import { show } from '../../composables/modal'
 import { useView } from '../../composables/view'
 import { type Skin } from '../../core/skin'
+import IconClone from '../../icons/clone-solid.svg?component'
+import IconPaste from '../../icons/file-solid.svg?component'
 import IconVectorSquare from '../../icons/vector-square-solid.svg?component'
 import ModalSimpleTransform from '../modals/ModalSimpleTransform.vue'
 import MyButton from '../ui/MyButton.vue'
@@ -15,6 +18,8 @@ import PreviewSkinSprite from './previews/PreviewSkinSprite.vue'
 const props = defineProps<{
     data: Skin
 }>()
+
+const { copy, paste } = useClipboard()
 
 const v = useView(
     props,
@@ -34,6 +39,17 @@ async function onSetSimpleTransform() {
 </script>
 
 <template>
+    <MySection header="Clipboard">
+        <div class="flex gap-2">
+            <MyButton :icon="IconClone" text="Copy" @click="copy('skin-sprite', v, props.data)" />
+            <MyButton
+                :icon="IconPaste"
+                text="Paste"
+                @click="paste('skin-sprite', v, props.data, { exclude: ['name'] })"
+            />
+        </div>
+    </MySection>
+
     <MySection header="Texture">
         <MyField title="Texture">
             <MyImageInput v-model="v.texture" validate />

@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useClipboard } from '../../composables/clipboard'
 import { show } from '../../composables/modal'
 import { useView } from '../../composables/view'
 import { type Particle } from '../../core/particle'
 import { type TransformExpression, allZero } from '../../core/transform-expression'
+import IconClone from '../../icons/clone-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'
+import IconPaste from '../../icons/file-solid.svg?component'
 import ModalTransformExpressionEquation from '../modals/ModalTransformExpressionEquation.vue'
 import MyButton from '../ui/MyButton.vue'
 import MyCellNumberInput from '../ui/MyCellNumberInput.vue'
@@ -13,6 +16,8 @@ import PreviewParticleEffect from './previews/PreviewParticleEffect.vue'
 const props = defineProps<{
     data: Particle
 }>()
+
+const { copy, paste } = useClipboard()
 
 const v = useView(
     props,
@@ -37,6 +42,21 @@ async function editEquation(r: (typeof rows)[number]) {
 </script>
 
 <template>
+    <MySection header="Clipboard">
+        <div class="flex gap-2">
+            <MyButton
+                :icon="IconClone"
+                text="Copy"
+                @click="copy('particle-effect', v, props.data)"
+            />
+            <MyButton
+                :icon="IconPaste"
+                text="Paste"
+                @click="paste('particle-effect', v, props.data, { exclude: ['name'] })"
+            />
+        </div>
+    </MySection>
+
     <MySection header="Transformation">
         <table class="mx-auto block max-w-min overflow-x-auto text-center">
             <thead>

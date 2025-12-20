@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useClipboard } from '../../composables/clipboard'
 import { show } from '../../composables/modal'
 import { useView } from '../../composables/view'
 import { easings } from '../../core/ease'
 import { type Particle } from '../../core/particle'
 import { type PropertyExpression, allZero } from '../../core/property-expression'
+import IconClone from '../../icons/clone-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'
+import IconPaste from '../../icons/file-solid.svg?component'
 import ModalPropertyExpressionEquation from '../modals/ModalPropertyExpressionEquation.vue'
 import MyButton from '../ui/MyButton.vue'
 import MyCellNumberInput from '../ui/MyCellNumberInput.vue'
@@ -19,6 +22,8 @@ import PreviewParticleEffectGroupParticle from './previews/PreviewParticleEffect
 const props = defineProps<{
     data: Particle
 }>()
+
+const { copy, paste } = useClipboard()
 
 const v = useView(props, 'particles', (v, view) => {
     const effect = v.value.data.effects.find(({ name }) => name === view.value[3])
@@ -53,6 +58,21 @@ async function editEquation(p: (typeof properties)[number], t: (typeof types)[nu
 </script>
 
 <template>
+    <MySection header="Clipboard">
+        <div class="flex gap-2">
+            <MyButton
+                :icon="IconClone"
+                text="Copy"
+                @click="copy('particle-effect-group-particle', v, props.data)"
+            />
+            <MyButton
+                :icon="IconPaste"
+                text="Paste"
+                @click="paste('particle-effect-group-particle', v, props.data)"
+            />
+        </div>
+    </MySection>
+
     <MySection header="Texture">
         <MyField title="Sprite">
             <MyTextSelect v-model="v.spriteId" :options="spriteOptions" />
