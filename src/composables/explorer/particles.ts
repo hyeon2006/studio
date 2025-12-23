@@ -2,6 +2,7 @@ import { ParticleEffectName } from '@sonolus/core'
 import { markRaw } from 'vue'
 import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 import ModalName from '../../components/modals/ModalName.vue'
+import ModalTextInput from '../../components/modals/ModalTextInput.vue'
 import { newId } from '../../core/id'
 import {
     formatParticleEffectName,
@@ -139,15 +140,18 @@ export function addParticleItems(state: UseStateReturn, items: ExplorerItem[]) {
 
                 if (!isOpened(['particles', name, 'effects', effectName])) continue
 
-                for (const [groupIndex, { particles }] of groups.entries()) {
+                for (const [groupIndex, group] of groups.entries()) {
                     items.push({
                         level: 4,
                         path: ['particles', name, 'effects', effectName, 'groups', `${groupIndex}`],
                         hasChildren: true,
                         icon: IconFolder,
-                        title: `Group #${groupIndex}`,
+                        title: group.name ? group.name : `Group #${groupIndex}`,
                         onNew: () => {
                             onNewParticleEffectGroupParticle(state, name, effectName, groupIndex)
+                        },
+                        onRename: () => {
+                            void onRenameParticleEffectGroup(state, name, effectName, groupIndex)
                         },
                         onClone: () => {
                             onCloneParticleEffectGroup(state, name, effectName, groupIndex)
@@ -169,7 +173,7 @@ export function addParticleItems(state: UseStateReturn, items: ExplorerItem[]) {
                     )
                         continue
 
-                    for (const [particleIndex, { spriteId }] of particles.entries()) {
+                    for (const [particleIndex, { spriteId }] of group.particles.entries()) {
                         items.push({
                             level: 5,
                             path: [
@@ -524,6 +528,50 @@ async function onRenameParticleEffect(
             view.value[3] === effectName
                 ? ['particles', name, 'effects', newName, ...view.value.slice(4)]
                 : view.value,
+        particles,
+    })
+}
+
+async function onRenameParticleEffectGroup(
+    { project, view }: UseStateReturn,
+    name: string,
+    effectName: string,
+    groupIndex: number,
+) {
+    const particle = project.value.particles.get(name)
+    if (!particle) throw new Error('Particle not found')
+
+    const effect = particle.data.effects.find(({ name }) => name === effectName)
+    if (!effect) throw new Error('Particle Effect not found')
+
+    const group = effect.groups[groupIndex]
+    if (!group) throw new Error('Particle Effect Group not found')
+
+    const newName = await show(ModalTextInput, {
+        icon: markRaw(IconEdit),
+        title: 'Rename Particle Effect Group',
+        defaultValue: group.name,
+        placeholder: 'Enter group name...',
+    })
+    if (newName === undefined) return
+
+    const newGroup = clone(group)
+    newGroup.name = newName
+
+    const newEffect = clone(effect)
+    newEffect.groups[groupIndex] = newGroup
+
+    const newParticle = clone(particle)
+    newParticle.data.effects = newParticle.data.effects.map((effect) =>
+        effect.name === effectName ? newEffect : effect,
+    )
+
+    const particles = new Map(project.value.particles)
+    particles.set(name, newParticle)
+
+    push({
+        ...project.value,
+        view: view.value,
         particles,
     })
 }
