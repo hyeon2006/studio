@@ -8,10 +8,11 @@
     "check-type": "vue-tsc --build --force",
     "check-lint": "eslint .",
     "check-format": "prettier . --check",
+    "format": "prettier . --write",
     "build": "vite build"
   },
   "dependencies": {
-    "@sonolus/core": "~7.14.1",
+    "@sonolus/core": "~7.14.2",
     "@vueuse/core": "^13.5.0",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
