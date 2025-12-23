@@ -246,7 +246,8 @@ async function onNewParticleEffect({ project, isExplorerOpened }: UseStateReturn
         title: 'New Particle Effect',
         names: ParticleEffectName,
         defaultValue: ParticleEffectName.LaneLinear,
-        validator: (value) => !!value && !particle.data.effects.some(({ name }) => name === value),
+        validator: (value: string) =>
+            !!value && !particle.data.effects.some(({ name }) => name === value),
     })
     if (!effectName) return
 
@@ -504,7 +505,8 @@ async function onRenameParticleEffect(
         title: 'Rename Particle Effect',
         names: ParticleEffectName,
         defaultValue: effectName,
-        validator: (value) => !!value && !particle.data.effects.some(({ name }) => name === value),
+        validator: (value: string) =>
+            !!value && !particle.data.effects.some(({ name }) => name === value),
     })
     if (!newName) return
 
@@ -592,7 +594,8 @@ async function onCloneParticleEffect(
         title: 'Clone Particle Effect',
         names: ParticleEffectName,
         defaultValue: effectName,
-        validator: (value) => !!value && !particle.data.effects.some(({ name }) => name === value),
+        validator: (value: string) =>
+            !!value && !particle.data.effects.some(({ name }) => name === value),
     })
     if (!newName) return
 

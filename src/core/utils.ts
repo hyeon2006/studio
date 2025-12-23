@@ -17,6 +17,9 @@ export function emptySrl() {
 }
 
 export function clone<T>(data: T): T {
+    if (typeof structuredClone === 'function') {
+        return structuredClone(data)
+    }
     return JSON.parse(JSON.stringify(data)) as never
 }
 

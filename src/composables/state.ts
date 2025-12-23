@@ -1,4 +1,4 @@
-import { computed, reactive, toRef, watchEffect } from 'vue'
+import { computed, markRaw, reactive, toRef, watchEffect } from 'vue'
 import { type Project, addProjectToWhitelist, newProject } from '../core/project'
 import { purge } from '../core/storage'
 
@@ -6,7 +6,7 @@ export type UseStateReturn = ReturnType<typeof useState>
 
 const state = reactive({
     index: 0,
-    history: [newProject()],
+    history: [markRaw(newProject())],
 
     updater: '',
     updaterTime: Number.NEGATIVE_INFINITY,
@@ -15,14 +15,24 @@ const state = reactive({
     isExplorerOpened: false,
 })
 
-watchEffect(() => {
-    const whitelist = new Set<string>()
+let purgeTimer: number | undefined
+watchEffect((onCleanup) => {
+    const historySnapshot = state.history
 
-    for (const project of state.history) {
-        addProjectToWhitelist(project, whitelist)
-    }
+    clearTimeout(purgeTimer)
+    purgeTimer = window.setTimeout(() => {
+        const whitelist = new Set<string>()
 
-    purge(whitelist)
+        for (const project of historySnapshot) {
+            addProjectToWhitelist(project, whitelist)
+        }
+
+        purge(whitelist)
+    }, 1000)
+
+    onCleanup(() => {
+        clearTimeout(purgeTimer)
+    })
 })
 
 addEventListener('beforeunload', (event) => {
@@ -61,11 +71,11 @@ export function push(project: Project, updater = '') {
 
     const now = Date.now().valueOf()
     if (updater && state.updater === updater && now - state.updaterTime < 2000) {
-        state.history[state.index] = project
+        state.history[state.index] = markRaw(project)
     } else {
         if (state.history.length > 50) state.history.shift()
 
-        state.history.push(project)
+        state.history.push(markRaw(project))
         state.index = state.history.length - 1
     }
 
@@ -76,7 +86,7 @@ export function push(project: Project, updater = '') {
 
 export function replace(project: Project) {
     state.history.length = 0
-    state.history.push(project)
+    state.history.push(markRaw(project))
     state.index = 0
 
     state.view = []
