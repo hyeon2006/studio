@@ -1,5 +1,4 @@
 import {
-    type ParticleData,
     type ParticleDataGroupParticle,
     ParticleEffectName,
     type ParticleItem,
@@ -15,6 +14,38 @@ import { bakeSprite, tryCalculateLayout } from './sprite-sheet'
 import { load } from './storage'
 import { type TransformExpression, allZero as allZeroTransform } from './transform-expression'
 import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
+
+export type ParticleDataGroup = {
+    name: string
+    count: number
+    particles: ParticleDataGroupParticle[]
+}
+
+export type ParticleData = {
+    width: number
+    height: number
+    interpolation: boolean
+    sprites: {
+        x: number
+        y: number
+        w: number
+        h: number
+    }[]
+    effects: {
+        name: string
+        transform: {
+            x1: Record<string, number>
+            x2: Record<string, number>
+            x3: Record<string, number>
+            x4: Record<string, number>
+            y1: Record<string, number>
+            y2: Record<string, number>
+            y3: Record<string, number>
+            y4: Record<string, number>
+        }
+        groups: ParticleDataGroup[]
+    }[]
+}
 
 export type Particle = {
     title: string
@@ -38,6 +69,7 @@ export type Particle = {
             name: string
             transform: Transform
             groups: {
+                name: string
                 count: number
                 particles: {
                     spriteId: string
@@ -103,6 +135,7 @@ export function newParticleEffect(name: string): Particle['data']['effects'][num
 }
 export function newParticleEffectGroup(): Particle['data']['effects'][number]['groups'][number] {
     return {
+        name: '',
         count: 1,
         particles: [],
     }
@@ -258,7 +291,8 @@ function packParticle(
                         y3: prune(transform.y3),
                         y4: prune(transform.y4),
                     },
-                    groups: groups.map(({ count, particles }) => ({
+                    groups: groups.map(({ name: groupName, count, particles }) => ({
+                        name: groupName,
                         count,
                         particles: particles.map(
                             ({ spriteId, color, start, duration, x, y, w, h, r, a }) => {
@@ -465,6 +499,7 @@ function unpackParticle({ project, tasks, canvas, getRaw, getJson }: UnpackProce
                                     y4: { ...allZeroTransform, ...effect.transform.y4 },
                                 },
                                 groups: effect.groups.map((group) => ({
+                                    name: group.name,
                                     count: group.count,
                                     particles: group.particles.map((particle) => ({
                                         spriteId: item.data.sprites[particle.sprite]?.id ?? '',

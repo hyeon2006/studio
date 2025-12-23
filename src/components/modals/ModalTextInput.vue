@@ -13,7 +13,7 @@ const props = defineProps<{
         title: string
         defaultValue: string
         placeholder: string
-        validator: Validator<string>
+        validator?: Validator<string>
     }
 }>()
 
@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 const value = ref(props.data.defaultValue)
 
-const isError = computed(() => !props.data.validator(value.value))
+const isError = computed(() => (props.data.validator ? !props.data.validator(value.value) : false))
 
 function close(isSuccess?: boolean) {
     emit('close', isSuccess ? value.value : undefined)

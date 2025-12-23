@@ -8,6 +8,7 @@ import MyButton from '../ui/MyButton.vue'
 import MyField from '../ui/MyField.vue'
 import MyNumberInput from '../ui/MyNumberInput.vue'
 import MySection from '../ui/MySection.vue'
+import MyTextInput from '../ui/MyTextInput.vue'
 import PreviewParticleEffectGroup from './previews/PreviewParticleEffectGroup.vue'
 
 const props = defineProps<{
@@ -42,6 +43,9 @@ const v = useView(
     </MySection>
 
     <MySection header="Group">
+        <MyField title="Name">
+            <MyTextInput v-model="v.name" placeholder="Enter group name..." />
+        </MyField>
         <MyField title="Count">
             <MyNumberInput v-model="v.count" placeholder="Enter group count..." validate />
         </MyField>
