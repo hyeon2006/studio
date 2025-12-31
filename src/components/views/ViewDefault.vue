@@ -14,10 +14,10 @@ const appVersion = VITE_APP_VERSION
         <div class="text-xs">For Sonolus {{ version.sonolus }}</div>
         <div class="mt-16">
             Use
-            <IconList class="icon my-2 ml-2 mr-1 inline-block sm:hidden" />
+            <IconList class="icon my-2 mr-1 ml-2 inline-block sm:hidden" />
             Project Explorer to get started.
         </div>
-        <div class="mt-16 text-xs text-sonolus-ui-text-disabled sm:hidden">
+        <div class="text-sonolus-ui-text-disabled mt-16 text-xs sm:hidden">
             For iOS users, please use Sonolus Studio in Safari.
         </div>
     </div>

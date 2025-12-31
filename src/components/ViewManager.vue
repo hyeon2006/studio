@@ -56,11 +56,11 @@ function onClick(item: ExplorerItem) {
         leave-to-class="hidden"
     >
         <div :key="view.join('/')" :style="{ marginLeft: isDesktop ? `${sidebarWidth}px` : '0px' }">
-            <nav class="sticky top-8 z-10 bg-sonolus-main p-2 text-sm">
+            <nav class="bg-sonolus-main sticky top-8 z-10 p-2 text-sm">
                 <template v-for="(item, index) in path" :key="item.path.join('/')">
-                    <span v-if="index" class="mx-1 text-sonolus-ui-text-disabled">/</span>
+                    <span v-if="index" class="text-sonolus-ui-text-disabled mx-1">/</span>
                     <button
-                        class="px-1 text-sonolus-ui-text-soften transition-colors duration-200 hover:bg-sonolus-ui-button-highlighted hover:text-sonolus-ui-text-normal active:bg-sonolus-ui-button-pressed"
+                        class="text-sonolus-ui-text-soften hover:bg-sonolus-ui-button-highlighted hover:text-sonolus-ui-text-normal active:bg-sonolus-ui-button-pressed px-1 transition-colors duration-200"
                         @click="onClick(item)"
                     >
                         {{ item.title }}

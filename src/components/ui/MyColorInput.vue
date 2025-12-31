@@ -72,26 +72,26 @@ function reset() {
 </script>
 
 <template>
-    <div class="relative flex h-8 items-center" :class="{ 'ring-1 ring-sonolus-warning': isError }">
+    <div class="relative flex h-8 items-center" :class="{ 'ring-sonolus-warning ring-1': isError }">
         <input
             ref="el"
             v-model="value"
             type="text"
-            class="clickable h-full w-full flex-grow border-none pl-8 pr-2 text-center"
+            class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
             :placeholder="placeholder"
             @focus="selectAll()"
             @keydown.enter="$emit('enter')"
             @keydown.escape="$emit('escape')"
         />
-        <IconExclamation v-if="isError" class="icon pointer-events-none absolute left-2 top-2" />
+        <IconExclamation v-if="isError" class="icon pointer-events-none absolute top-2 left-2" />
         <div
             v-else
-            class="icon pointer-events-none absolute left-2 top-2"
+            class="icon pointer-events-none absolute top-2 left-2"
             :style="{ backgroundColor: modelValue }"
         />
         <div class="clickable relative h-full flex-none">
             <input v-model="colorValue" class="h-full w-8 opacity-0" type="color" tabindex="-1" />
-            <IconPalette class="icon pointer-events-none absolute left-2 top-2" />
+            <IconPalette class="icon pointer-events-none absolute top-2 left-2" />
         </div>
         <button
             v-if="defaultValue !== undefined"

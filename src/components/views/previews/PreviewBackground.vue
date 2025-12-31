@@ -73,7 +73,7 @@ const blurRadius = computed(() => height.value * props.background.configuration.
         />
     </MyField>
 
-    <div class="my-4 border-4 border-sonolus-ui-text-normal">
+    <div class="border-sonolus-ui-text-normal my-4 border-4">
         <div
             ref="el"
             class="relative h-0 overflow-hidden"
@@ -83,7 +83,7 @@ const blurRadius = computed(() => height.value * props.background.configuration.
             }"
         >
             <div
-                class="absolute left-1/2 top-0 h-full -translate-x-1/2"
+                class="absolute top-0 left-1/2 h-full -translate-x-1/2"
                 :style="{ width: `calc(100% * ${width})` }"
             >
                 <div
@@ -93,14 +93,14 @@ const blurRadius = computed(() => height.value * props.background.configuration.
                     }"
                 >
                     <img
-                        class="absolute left-0 top-0 h-full w-full"
+                        class="absolute top-0 left-0 h-full w-full"
                         :style="{ filter: `blur(${blurRadius}px)` }"
                         :src="background.image"
                     />
                 </div>
             </div>
             <div
-                class="absolute left-0 top-0 h-full w-full"
+                class="absolute top-0 left-0 h-full w-full"
                 :style="{ backgroundColor: background.configuration.mask }"
             />
         </div>

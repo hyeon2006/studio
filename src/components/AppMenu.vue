@@ -246,7 +246,7 @@ function onKeyDown(e: KeyboardEvent) {
 
 <template>
     <div
-        class="fixed top-0 z-40 flex h-8 w-full bg-sonolus-ui-surface text-sm"
+        class="bg-sonolus-ui-surface fixed top-0 z-40 flex h-8 w-full text-sm"
         @click.self="close()"
     >
         <button
@@ -266,7 +266,7 @@ function onKeyDown(e: KeyboardEvent) {
             {{ menu.title }}
             <div
                 v-if="openedIndex === i"
-                class="absolute top-8 -ml-3 flex min-w-[8rem] cursor-default flex-col bg-sonolus-ui-surface py-1 sm:min-w-[12rem]"
+                class="bg-sonolus-ui-surface absolute top-8 -ml-3 flex min-w-[8rem] cursor-default flex-col py-1 sm:min-w-[12rem]"
             >
                 <template v-for="(item, j) in menu.items" :key="j">
                     <button
@@ -280,7 +280,7 @@ function onKeyDown(e: KeyboardEvent) {
                             Ctrl + {{ item.key.toUpperCase() }}
                         </div>
                     </button>
-                    <hr v-else class="my-1 w-full flex-none border-sonolus-ui-text-disabled" />
+                    <hr v-else class="border-sonolus-ui-text-disabled my-1 w-full flex-none" />
                 </template>
             </div>
         </button>

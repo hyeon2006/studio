@@ -87,7 +87,7 @@ function reset() {
             <div class="h-full w-full bg-[rgba(0,0,0,0.25)] p-1">
                 <div ref="el" class="h-full w-full">
                     <div
-                        class="h-full w-full origin-left transform bg-sonolus-ui-text-normal transition-transform duration-100"
+                        class="bg-sonolus-ui-text-normal h-full w-full origin-left transform transition-transform duration-100"
                         :style="`--tw-scale-x: ${(value - min) / (max - min)}`"
                     />
                 </div>

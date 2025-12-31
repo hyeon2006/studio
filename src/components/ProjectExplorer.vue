@@ -96,7 +96,7 @@ function stopResize() {
 
 <template>
     <div
-        class="fixed bottom-0 left-0 top-8 z-20 flex w-full -translate-x-full bg-sonolus-main text-sm opacity-0 sm:translate-x-0 sm:opacity-100"
+        class="bg-sonolus-main fixed top-8 bottom-0 left-0 z-20 flex w-full -translate-x-full text-sm opacity-0 sm:translate-x-0 sm:opacity-100"
         :class="{
             'translate-x-0 opacity-100': isExplorerOpened,
             'transition-all duration-200': !isResizing,
@@ -174,7 +174,7 @@ function stopResize() {
         </div>
 
         <div
-            class="hidden h-full w-2 flex-none cursor-col-resize hover:bg-sonolus-ui-text-disabled sm:block"
+            class="hover:bg-sonolus-ui-text-disabled hidden h-full w-2 flex-none cursor-col-resize sm:block"
             @mousedown.prevent="startResize"
         ></div>
     </div>
