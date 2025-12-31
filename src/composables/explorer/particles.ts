@@ -1,6 +1,5 @@
 import { ParticleEffectName } from '@sonolus/core'
 import { markRaw } from 'vue'
-import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 import ModalName from '../../components/modals/ModalName.vue'
 import ModalTextInput from '../../components/modals/ModalTextInput.vue'
 import { newId } from '../../core/id'
@@ -20,7 +19,8 @@ import IconFolder from '../../icons/folder-solid.svg?component'
 import IconParticle from '../../icons/particle.svg?component'
 import IconPlus from '../../icons/plus-solid.svg?component'
 import { show } from '../modal'
-import { type UseStateReturn, push } from '../state'
+import { push, type UseStateReturn } from '../state'
+import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 
 export function addParticleItems(state: UseStateReturn, items: ExplorerItem[]) {
     items.push({

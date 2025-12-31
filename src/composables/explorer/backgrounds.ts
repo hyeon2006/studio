@@ -1,7 +1,7 @@
-import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 import { newBackground } from '../../core/background'
 import IconImage from '../../icons/image-solid.svg?component'
 import { type UseStateReturn } from '../state'
+import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 
 export function addBackgroundItems(state: UseStateReturn, items: ExplorerItem[]) {
     items.push({

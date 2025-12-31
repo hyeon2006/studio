@@ -1,5 +1,5 @@
 import { useDevicePixelRatio, useMouseInElement, useMousePressed } from '@vueuse/core'
-import { type Ref, computed, ref, watch, watchEffect } from 'vue'
+import { computed, type Ref, ref, watch, watchEffect } from 'vue'
 import { type Point, type Rect } from '../core/utils'
 
 export function useCanvas(target: Ref<HTMLElement | undefined>) {

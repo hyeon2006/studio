@@ -1,6 +1,5 @@
 import { EffectClipName } from '@sonolus/core'
 import { markRaw } from 'vue'
-import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 import ModalName from '../../components/modals/ModalName.vue'
 import { formatEffectClipName, newEffect, newEffectClip } from '../../core/effect'
 import { clone } from '../../core/utils'
@@ -11,7 +10,8 @@ import IconFileAudio from '../../icons/file-audio-solid.svg?component'
 import IconFolder from '../../icons/folder-solid.svg?component'
 import IconPlus from '../../icons/plus-solid.svg?component'
 import { show } from '../modal'
-import { type UseStateReturn, push } from '../state'
+import { push, type UseStateReturn } from '../state'
+import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 
 export function addEffectItems(state: UseStateReturn, items: ExplorerItem[]) {
     items.push({

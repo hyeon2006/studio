@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/forms';
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
 
 @theme {
     --color-sonolus-main: rgba(0, 0, 32, 1);

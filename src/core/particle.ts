@@ -9,10 +9,10 @@ import { type Ease } from './ease'
 import { newId } from './id'
 import { formatNameKey } from './names'
 import { type PackProcess, type Project, type UnpackProcess } from './project'
-import { type PropertyExpression, allZero as allZeroProperty } from './property-expression'
+import { allZero as allZeroProperty, type PropertyExpression } from './property-expression'
 import { bakeSprite, tryCalculateLayout } from './sprite-sheet'
 import { load } from './storage'
-import { type TransformExpression, allZero as allZeroTransform } from './transform-expression'
+import { allZero as allZeroTransform, type TransformExpression } from './transform-expression'
 import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
 
 export type ParticleDataGroup = {

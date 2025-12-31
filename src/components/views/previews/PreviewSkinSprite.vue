@@ -6,7 +6,7 @@ import { inverseBilinear } from '../../../core/bilinear-interpolation'
 import { execute } from '../../../core/expression'
 import { sample } from '../../../core/sampling'
 import { type Skin } from '../../../core/skin'
-import { type Rect, getImageBuffer, getImageInfo } from '../../../core/utils'
+import { getImageBuffer, getImageInfo, type Rect } from '../../../core/utils'
 import MyColorInput from '../../ui/MyColorInput.vue'
 import MyField from '../../ui/MyField.vue'
 

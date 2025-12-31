@@ -11,14 +11,14 @@ import {
 } from '@sonolus/core'
 import JSZip from 'jszip'
 import {
-    type Background,
     addBackgroundToWhitelist,
+    type Background,
     packBackgrounds,
     unpackBackgrounds,
 } from './background'
-import { type Effect, addEffectToWhitelist, packEffects, unpackEffects } from './effect'
-import { type Particle, addParticleToWhitelist, packParticles, unpackParticles } from './particle'
-import { type Skin, addSkinToWhitelist, packSkins, unpackSkins } from './skin'
+import { addEffectToWhitelist, type Effect, packEffects, unpackEffects } from './effect'
+import { addParticleToWhitelist, type Particle, packParticles, unpackParticles } from './particle'
+import { addSkinToWhitelist, packSkins, type Skin, unpackSkins } from './skin'
 import { load } from './storage'
 import { packRaw } from './utils'
 

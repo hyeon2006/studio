@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, type Component } from 'vue'
+import { type Component, ref, watch } from 'vue'
 import IconExclamation from '../../icons/exclamation-circle-solid.svg?component'
 
 const props = defineProps<{

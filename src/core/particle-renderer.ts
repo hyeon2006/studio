@@ -1,6 +1,6 @@
 import { type Ease, easings } from './ease'
 import { type ParticleState } from './particle-state'
-import { type Rect, lerp, lerpPoint, unlerp } from './utils'
+import { lerp, lerpPoint, type Rect, unlerp } from './utils'
 
 export function renderParticle(
     ctx: CanvasRenderingContext2D,

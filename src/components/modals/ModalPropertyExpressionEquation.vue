@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { expressionToEquation } from '../../core/expression'
 import {
-    type PropertyExpression,
     equationToPropertyExpression,
+    type PropertyExpression,
 } from '../../core/property-expression'
 import IconCheck from '../../icons/check-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'

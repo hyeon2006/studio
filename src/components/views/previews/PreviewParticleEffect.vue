@@ -5,9 +5,9 @@ import { useParticlePreview } from '../../../composables/particle-preview'
 import { execute } from '../../../core/expression'
 import { type Particle } from '../../../core/particle'
 import { renderParticle } from '../../../core/particle-renderer'
-import { type ParticleState, getParticleState } from '../../../core/particle-state'
+import { getParticleState, type ParticleState } from '../../../core/particle-state'
 import { getPropertyExpressionRandom } from '../../../core/property-expression'
-import { type ImageInfo, type Rect, getImageInfo } from '../../../core/utils'
+import { getImageInfo, type ImageInfo, type Rect } from '../../../core/utils'
 import ParticlePreview from './ParticlePreview.vue'
 
 const props = defineProps<{
