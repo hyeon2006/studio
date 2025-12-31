@@ -1,4 +1,4 @@
-import { computed, markRaw, reactive, toRef, watchEffect } from 'vue'
+import { computed, reactive, toRef, watchEffect } from 'vue'
 import { type Project, addProjectToWhitelist, newProject } from '../core/project'
 import { purge } from '../core/storage'
 
@@ -6,33 +6,25 @@ export type UseStateReturn = ReturnType<typeof useState>
 
 const state = reactive({
     index: 0,
-    history: [markRaw(newProject())],
+    history: [newProject()],
 
     updater: '',
     updaterTime: Number.NEGATIVE_INFINITY,
 
     view: [] as string[],
     isExplorerOpened: false,
+
+    sidebarWidth: 320,
 })
 
-let purgeTimer: number | undefined
-watchEffect((onCleanup) => {
-    const historySnapshot = state.history
+watchEffect(() => {
+    const whitelist = new Set<string>()
 
-    clearTimeout(purgeTimer)
-    purgeTimer = window.setTimeout(() => {
-        const whitelist = new Set<string>()
+    for (const project of state.history) {
+        addProjectToWhitelist(project, whitelist)
+    }
 
-        for (const project of historySnapshot) {
-            addProjectToWhitelist(project, whitelist)
-        }
-
-        purge(whitelist)
-    }, 1000)
-
-    onCleanup(() => {
-        clearTimeout(purgeTimer)
-    })
+    purge(whitelist)
 })
 
 addEventListener('beforeunload', (event) => {
@@ -50,6 +42,7 @@ export function useState() {
 
     const view = toRef(state, 'view')
     const isExplorerOpened = toRef(state, 'isExplorerOpened')
+    const sidebarWidth = toRef(state, 'sidebarWidth')
 
     return {
         project,
@@ -59,6 +52,7 @@ export function useState() {
 
         view,
         isExplorerOpened,
+        sidebarWidth,
     }
 }
 
@@ -71,11 +65,11 @@ export function push(project: Project, updater = '') {
 
     const now = Date.now().valueOf()
     if (updater && state.updater === updater && now - state.updaterTime < 2000) {
-        state.history[state.index] = markRaw(project)
+        state.history[state.index] = project
     } else {
         if (state.history.length > 50) state.history.shift()
 
-        state.history.push(markRaw(project))
+        state.history.push(project)
         state.index = state.history.length - 1
     }
 
@@ -86,7 +80,7 @@ export function push(project: Project, updater = '') {
 
 export function replace(project: Project) {
     state.history.length = 0
-    state.history.push(markRaw(project))
+    state.history.push(project)
     state.index = 0
 
     state.view = []

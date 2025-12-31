@@ -1,12 +1,25 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { type ExplorerItem, useExplorer } from '../composables/explorer'
 import { clearUpdater, useState } from '../composables/state'
 import { resolveViewInfo } from './ViewManager'
 import ViewDefault from './views/ViewDefault.vue'
 
-const { project, view } = useState()
+const { project, view, sidebarWidth } = useState()
 const { tree } = useExplorer()
+
+const isDesktop = ref(window.innerWidth >= 640)
+
+function onResize() {
+    isDesktop.value = window.innerWidth >= 640
+}
+
+onMounted(() => {
+    window.addEventListener('resize', onResize)
+})
+onUnmounted(() => {
+    window.removeEventListener('resize', onResize)
+})
 
 watch(view, () => {
     clearUpdater()
@@ -42,7 +55,7 @@ function onClick(item: ExplorerItem) {
         leave-from-class="hidden"
         leave-to-class="hidden"
     >
-        <div :key="view.join('/')" class="lg:ml-100 sm:ml-60 md:ml-80">
+        <div :key="view.join('/')" :style="{ marginLeft: isDesktop ? `${sidebarWidth}px` : '0px' }">
             <nav class="sticky top-8 z-10 bg-sonolus-main p-2 text-sm">
                 <template v-for="(item, index) in path" :key="item.path.join('/')">
                     <span v-if="index" class="mx-1 text-sonolus-ui-text-disabled">/</span>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watchEffect } from 'vue'
+import { onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import {
     type ExplorerItem,
     isOpened,
@@ -19,8 +19,11 @@ import IconTrash from '../icons/trash-alt-solid.svg?component'
 import MyImageIcon from './ui/MyImageIcon.vue'
 import { resolveViewInfo } from './ViewManager'
 
-const { project, view, isExplorerOpened } = useState()
+const { project, view, isExplorerOpened, sidebarWidth } = useState()
 const { tree } = useExplorer()
+
+const isResizing = ref(false)
+const isDesktop = ref(window.innerWidth >= 640)
 
 watchEffect(() => {
     if (!resolveViewInfo(project.value, view.value)) return
@@ -46,81 +49,133 @@ function onClick(item: ExplorerItem) {
     }
     toggle(item.path)
 }
+
+function onWindowResize() {
+    const width = window.innerWidth
+    isDesktop.value = width >= 640
+
+    if (isDesktop.value) {
+        const maxWidth = width / 2
+        if (sidebarWidth.value > maxWidth) {
+            sidebarWidth.value = maxWidth
+        }
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('resize', onWindowResize)
+    onWindowResize()
+})
+onUnmounted(() => {
+    window.removeEventListener('resize', onWindowResize)
+})
+
+function startResize() {
+    isResizing.value = true
+    document.addEventListener('mousemove', handleResize)
+    document.addEventListener('mouseup', stopResize)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+}
+
+function handleResize(e: MouseEvent) {
+    if (!isResizing.value) return
+
+    const maxWidth = (e.view?.innerWidth ?? window.innerWidth) / 2
+    sidebarWidth.value = Math.max(200, Math.min(e.clientX, maxWidth))
+}
+
+function stopResize() {
+    isResizing.value = false
+    document.removeEventListener('mousemove', handleResize)
+    document.removeEventListener('mouseup', stopResize)
+    document.body.style.cursor = ''
+    document.body.style.userSelect = ''
+}
 </script>
 
 <template>
     <div
-        class="scrollbar lg:w-100 fixed bottom-0 left-0 top-8 z-20 w-full -translate-x-full overflow-y-auto bg-sonolus-main text-sm opacity-0 transition-all duration-200 sm:w-60 sm:translate-x-0 sm:opacity-100 md:w-80"
+        class="fixed bottom-0 left-0 top-8 z-20 flex w-full -translate-x-full bg-sonolus-main text-sm opacity-0 sm:translate-x-0 sm:opacity-100"
         :class="{
             'translate-x-0 opacity-100': isExplorerOpened,
+            'transition-all duration-200': !isResizing,
         }"
+        :style="{ width: isDesktop ? `${sidebarWidth}px` : '' }"
     >
-        <div
-            v-for="item in tree"
-            :key="toKey(item.path)"
-            class="transparent-clickable group flex h-8 w-full items-center"
-            :class="{
-                'bg-sonolus-ui-button-normal': isPathCurrentView(item.path),
-            }"
-            @click="onClick(item)"
-        >
-            <button
-                class="h-full flex-none pr-2"
+        <div class="scrollbar h-full flex-1 overflow-y-auto">
+            <div
+                v-for="item in tree"
+                :key="toKey(item.path)"
+                class="transparent-clickable group flex h-8 w-full items-center"
                 :class="{
-                    'pl-2': item.level === 0,
-                    'pl-4': item.level === 1,
-                    'pl-8': item.level === 2,
-                    'pl-12': item.level === 3,
-                    'pl-16': item.level === 4,
-                    'pl-20': item.level === 5,
-                    'pointer-events-none opacity-0': !item.hasChildren,
+                    'bg-sonolus-ui-button-normal': isPathCurrentView(item.path),
                 }"
-                @click.stop="toggle(item.path)"
+                @click="onClick(item)"
             >
-                <component
-                    :is="isOpened(item.path) ? IconAngleDown : IconAngleRight"
-                    class="icon"
+                <button
+                    class="h-full flex-none pr-2"
+                    :class="{
+                        'pl-2': item.level === 0,
+                        'pl-4': item.level === 1,
+                        'pl-8': item.level === 2,
+                        'pl-12': item.level === 3,
+                        'pl-16': item.level === 4,
+                        'pl-20': item.level === 5,
+                        'pointer-events-none opacity-0': !item.hasChildren,
+                    }"
+                    @click.stop="toggle(item.path)"
+                >
+                    <component
+                        :is="isOpened(item.path) ? IconAngleDown : IconAngleRight"
+                        class="icon"
+                    />
+                </button>
+                <MyImageIcon
+                    v-if="typeof item.icon === 'string'"
+                    class="icon flex-none"
+                    :src="item.icon"
+                    :fallback="item.fallback || IconFile"
+                    fill
                 />
-            </button>
-            <MyImageIcon
-                v-if="typeof item.icon === 'string'"
-                class="icon flex-none"
-                :src="item.icon"
-                :fallback="item.fallback || IconFile"
-                fill
-            />
-            <component :is="item.icon || item.fallback" v-else class="icon flex-none" />
-            <div class="ml-2 flex-1 truncate text-left">
-                {{ item.title }}
+                <component :is="item.icon || item.fallback" v-else class="icon flex-none" />
+                <div class="ml-2 flex-1 truncate text-left">
+                    {{ item.title }}
+                </div>
+                <button
+                    v-if="item.onNew"
+                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    @click.stop="item.onNew?.()"
+                >
+                    <IconPlus class="icon" />
+                </button>
+                <button
+                    v-if="item.onClone"
+                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    @click.stop="item.onClone?.()"
+                >
+                    <IconClone class="icon" />
+                </button>
+                <button
+                    v-if="item.onRename"
+                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    @click.stop="item.onRename?.()"
+                >
+                    <IconEdit class="icon" />
+                </button>
+                <button
+                    v-if="item.onDelete"
+                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    @click.stop="item.onDelete()"
+                >
+                    <IconTrash class="icon" />
+                </button>
             </div>
-            <button
-                v-if="item.onNew"
-                class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                @click.stop="item.onNew?.()"
-            >
-                <IconPlus class="icon" />
-            </button>
-            <button
-                v-if="item.onClone"
-                class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                @click.stop="item.onClone?.()"
-            >
-                <IconClone class="icon" />
-            </button>
-            <button
-                v-if="item.onRename"
-                class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                @click.stop="item.onRename?.()"
-            >
-                <IconEdit class="icon" />
-            </button>
-            <button
-                v-if="item.onDelete"
-                class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                @click.stop="item.onDelete()"
-            >
-                <IconTrash class="icon" />
-            </button>
         </div>
+
+        <div
+            class="hidden h-full w-2 flex-none cursor-col-resize hover:bg-sonolus-ui-text-disabled sm:block"
+            @mousedown.prevent="startResize"
+        ></div>
     </div>
 </template>
