@@ -38,7 +38,7 @@ const value = computed({
     },
 })
 
-const isError = computed(() => !validateInput(props, (value) => !!value.length))
+const isError = computed(() => !validateInput(props, (value) => !!value?.length))
 
 function selectAll() {
     if (!el.value) return
