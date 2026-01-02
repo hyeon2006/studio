@@ -22,7 +22,7 @@ import { addSkinToWhitelist, packSkins, type Skin, unpackSkins } from './skin'
 import { load } from './storage'
 import { packRaw } from './utils'
 
-export type Project = {
+export interface Project {
     view: string[]
     title: string
     description: string
@@ -70,7 +70,7 @@ export function addProjectToWhitelist(project: Project, whitelist: Set<string>) 
     }
 }
 
-export type PackProcess = {
+export interface PackProcess {
     skins: SkinItem[]
     backgrounds: BackgroundItem[]
     effects: EffectItem[]
@@ -205,7 +205,7 @@ export function packProject(project: Project, canvas: HTMLCanvasElement) {
     }
 }
 
-export type UnpackProcess = {
+export interface UnpackProcess {
     project: Project
 
     tasks: {

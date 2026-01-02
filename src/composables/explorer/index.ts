@@ -13,7 +13,7 @@ import { addEffectItems } from './effects'
 import { addParticleItems } from './particles'
 import { addSkinItems } from './skins'
 
-export type ExplorerItem = {
+export interface ExplorerItem {
     level: number
     path: string[]
     hasChildren: boolean

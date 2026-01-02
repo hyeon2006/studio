@@ -3,7 +3,7 @@ import { gzip, ungzip } from 'pako'
 export type Point = [number, number]
 export type Rect = [Point, Point, Point, Point]
 
-export type ImageInfo = {
+export interface ImageInfo {
     img: HTMLImageElement
     width: number
     height: number

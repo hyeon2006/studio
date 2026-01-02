@@ -9,7 +9,7 @@ import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { load } from './storage'
 import { emptySrl, packJson, packRaw, unpackJson } from './utils'
 
-export type Background = {
+export interface Background {
     title: string
     subtitle: string
     author: string

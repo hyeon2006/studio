@@ -1,6 +1,6 @@
 import { type Expression, type Transform } from './skin'
 
-type Point = {
+interface Point {
     x: Expression
     y: Expression
 }

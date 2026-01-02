@@ -11,7 +11,7 @@ import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { load } from './storage'
 import { emptySrl, packArrayBuffer, packJson, packRaw, unpackJson } from './utils'
 
-export type Effect = {
+export interface Effect {
     title: string
     subtitle: string
     author: string

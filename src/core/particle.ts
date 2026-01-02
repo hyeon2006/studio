@@ -15,13 +15,13 @@ import { load } from './storage'
 import { allZero as allZeroTransform, type TransformExpression } from './transform-expression'
 import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
 
-export type ParticleDataGroup = {
+export interface ParticleDataGroup {
     name: string
     count: number
     particles: ParticleDataGroupParticle[]
 }
 
-export type ParticleData = {
+export interface ParticleData {
     width: number
     height: number
     interpolation: boolean
@@ -47,7 +47,7 @@ export type ParticleData = {
     }[]
 }
 
-export type Particle = {
+export interface Particle {
     title: string
     subtitle: string
     author: string

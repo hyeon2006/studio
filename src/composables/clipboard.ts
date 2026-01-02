@@ -1,34 +1,34 @@
 const CLIPBOARD_KEY = 'sonolus_studio_clipboard'
 
-type SerializedFile = {
+interface SerializedFile {
     __type: 'File'
     name: string
     type: string
     data: string
 }
 
-type ClipboardItem = {
+interface ClipboardItem {
     type: string
     data: unknown
     dependencies?: unknown[]
 }
 
-type Sprite = {
+interface Sprite {
     id: string
     [key: string]: unknown
 }
 
-type HasSprites = {
+interface HasSprites {
     data: {
         sprites: Sprite[]
     }
 }
 
-type HasSpriteId = {
+interface HasSpriteId {
     spriteId: string
 }
 
-type PasteOptions = {
+interface PasteOptions {
     exclude?: string[]
 }
 

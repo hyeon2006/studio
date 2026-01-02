@@ -1,6 +1,6 @@
 import { getImageInfo } from './utils'
 
-export type SpriteLayout = {
+export interface SpriteLayout {
     name: string
     texture: string
     padding: {
