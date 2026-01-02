@@ -16,6 +16,7 @@ import MyColorInput from '../ui/MyColorInput.vue'
 import MyField from '../ui/MyField.vue'
 import MyNumberInput from '../ui/MyNumberInput.vue'
 import MySection from '../ui/MySection.vue'
+import MySpriteSelect from '../ui/MySpriteSelect.vue'
 import MyTextSelect from '../ui/MyTextSelect.vue'
 import PreviewParticleEffectGroupParticle from './previews/PreviewParticleEffectGroupParticle.vue'
 
@@ -32,9 +33,11 @@ const v = useView(props, 'particles', (v, view) => {
 })
 
 const spriteOptions = computed(() =>
-    Object.fromEntries(
-        props.data.data.sprites.map(({ id }, index) => [`Sprite #${index + 1}`, id]),
-    ),
+    props.data.data.sprites.map(({ id, texture }, index) => ({
+        value: id,
+        label: `Sprite #${index + 1}`,
+        image: texture,
+    })),
 )
 
 const easeOptions = Object.fromEntries(Object.keys(easings).map((k) => [k, k]))
@@ -74,7 +77,7 @@ async function editEquation(p: (typeof properties)[number], t: (typeof types)[nu
 
     <MySection header="Texture">
         <MyField title="Sprite">
-            <MyTextSelect v-model="v.spriteId" :options="spriteOptions" />
+            <MySpriteSelect v-model="v.spriteId" :options="spriteOptions" />
         </MyField>
         <MyField title="Color">
             <MyColorInput
