@@ -18,7 +18,11 @@ export function emptySrl() {
 
 export function clone<T>(data: T): T {
     if (typeof structuredClone === 'function') {
-        return structuredClone(data)
+        try {
+            return structuredClone(data)
+        } catch {
+            // None
+        }
     }
     return JSON.parse(JSON.stringify(data)) as never
 }
@@ -136,7 +140,7 @@ async function hash(data: BufferSource) {
         .join('')
 }
 
-async function toArrayBuffer(blob: Blob) {
+function toArrayBuffer(blob: Blob) {
     return new Promise<ArrayBuffer>((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = () => {
