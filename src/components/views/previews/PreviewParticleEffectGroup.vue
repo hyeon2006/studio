@@ -81,7 +81,6 @@ const imageInfos = computedAsync(async () => {
     for (const spriteId of new Set(props.group.particles.map((particle) => particle.spriteId))) {
         try {
             result[spriteId] = await getImageInfo(
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 props.sprites.find(({ id }) => id === spriteId)!.texture,
             )
         } catch {
@@ -96,7 +95,6 @@ const states = computed(() => {
     const states: ParticleState[] = []
 
     for (let i = 0; i < props.group.count; i++) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const values = { c: 1, ...randoms.value[i]! }
 
         for (const particle of props.group.particles) {

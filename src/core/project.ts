@@ -84,7 +84,6 @@ export type PackProcess = {
     canvas: HTMLCanvasElement
 
     addRaw: (path: string, data: Uint8Array) => void
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
     addJson: <T>(path: string, data: T) => void
 
     finish: () => Promise<Blob>
@@ -190,7 +189,6 @@ export function packProject(project: Project, canvas: HTMLCanvasElement) {
             execute() {
                 process.addJson<ServerItemList<unknown>>(`/sonolus/${path}/list`, {
                     pageCount: 1,
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                     items: process[path as never] ?? [],
                 })
             },
@@ -287,7 +285,6 @@ export function unpackPackage(file: File, canvas: HTMLCanvasElement) {
     return process
 
     function getOptional(path: string | null | undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if (!path?.startsWith('/')) throw new Error(`"${path!}" not allowed`)
 
         return zip.file(path.slice(1))
@@ -295,7 +292,6 @@ export function unpackPackage(file: File, canvas: HTMLCanvasElement) {
 
     function get(path: string | null | undefined) {
         const file = getOptional(path)
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if (!file) throw new Error(`"${path!}" not found`)
 
         return file

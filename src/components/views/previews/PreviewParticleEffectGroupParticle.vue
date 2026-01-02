@@ -77,7 +77,6 @@ const imageInfos = computedAsync(async () => {
     try {
         return {
             [props.particle.spriteId]: await getImageInfo(
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 props.sprites.find(({ id }) => id === props.particle.spriteId)!.texture,
             ),
         }

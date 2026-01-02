@@ -29,7 +29,6 @@ const options = computed(() =>
 )
 
 const type = ref<'general' | 'custom'>('general')
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const generalName = ref(Object.values(options.value)[0]!)
 const customName = ref('')
 

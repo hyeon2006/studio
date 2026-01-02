@@ -2,7 +2,6 @@ const urls: string[] = []
 
 export function purge(whitelist: Set<string>) {
     for (let i = urls.length - 1; i >= 0; i--) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const url = urls[i]!
         if (whitelist.has(url)) continue
 

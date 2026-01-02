@@ -21,7 +21,6 @@ const emit = defineEmits<{
 const el = ref<HTMLInputElement>()
 
 const audioInfo = ref<string | false>()
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 watchEffect(async () => {
     audioInfo.value = undefined
     try {

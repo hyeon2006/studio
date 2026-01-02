@@ -25,7 +25,6 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
     const hoverIndex = computed(() => {
         const [tx, ty] = position.value
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const [i, distance] = rect.value
             .map(([x, y], i) => [i, Math.hypot(tx - x, ty - y)] as const)
             .sort(([, a], [, b]) => a - b)[0]!

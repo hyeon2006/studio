@@ -34,7 +34,6 @@ addEventListener('beforeunload', (event) => {
 })
 
 export function useState() {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const project = computed(() => state.history[state.index]!)
     const canUndo = computed(() => state.index > 0)
     const canRedo = computed(() => state.index < state.history.length - 1)
@@ -104,6 +103,5 @@ export function redo() {
 }
 
 function updateView() {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     state.view = state.history[state.index]!.view
 }

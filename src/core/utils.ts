@@ -117,7 +117,6 @@ export async function packArrayBuffer(buffer: ArrayBuffer) {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export async function packJson<T>(json: T) {
     const data = gzip(JSON.stringify(json), { level: 9 })
 

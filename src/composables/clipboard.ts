@@ -206,7 +206,6 @@ export function useClipboard() {
 
             if (options?.exclude) {
                 for (const key of options.exclude) {
-                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                     delete deserializedData[key]
                 }
             }

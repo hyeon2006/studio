@@ -13,7 +13,6 @@ const props = defineProps<{
 const v = useView(
     props,
     'particles',
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (v, view) => v.value.data.sprites.find(({ id }) => id === view.value[3])!,
 )
 </script>

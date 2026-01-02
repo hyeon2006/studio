@@ -22,7 +22,6 @@ const { copy, paste } = useClipboard()
 const v = useView(
     props,
     'particles',
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (v, view) => v.value.data.effects.find(({ name }) => name === view.value[3])!,
 )
 

@@ -26,7 +26,6 @@ export function resolveViewInfo(project: Project, view: string[]) {
             return { component: markRaw(ViewInfo) }
         }
         case 'skins': {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const data = project[view[0]].get(view[1]!)
             if (!data) return
 
@@ -34,7 +33,6 @@ export function resolveViewInfo(project: Project, view: string[]) {
                 case 2:
                     return { component: markRaw(ViewSkin), data }
                 case 4:
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     if (!hasSkinSprite(data, view[3]!)) return
                     return { component: markRaw(ViewSkinSprite), data }
                 default:
@@ -42,14 +40,12 @@ export function resolveViewInfo(project: Project, view: string[]) {
             }
         }
         case 'backgrounds': {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const data = project[view[0]].get(view[1]!)
             if (!data) return
 
             return { component: markRaw(ViewBackground), data }
         }
         case 'effects': {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const data = project[view[0]].get(view[1]!)
             if (!data) return
 
@@ -57,7 +53,6 @@ export function resolveViewInfo(project: Project, view: string[]) {
                 case 2:
                     return { component: markRaw(ViewEffect), data }
                 case 4:
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     if (!hasEffectClip(data, view[3]!)) return
                     return { component: markRaw(ViewEffectClip), data }
                 default:
@@ -65,7 +60,6 @@ export function resolveViewInfo(project: Project, view: string[]) {
             }
         }
         case 'particles': {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const data = project[view[0]].get(view[1]!)
             if (!data) return
 
@@ -74,20 +68,16 @@ export function resolveViewInfo(project: Project, view: string[]) {
                     return { component: markRaw(ViewParticle), data }
                 case 4:
                     if (view[2] === 'sprites') {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         if (!hasParticleSprite(data, view[3]!)) return
                         return { component: markRaw(ViewParticleSprite), data }
                     } else {
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         if (!hasParticleEffect(data, view[3]!)) return
                         return { component: markRaw(ViewParticleEffect), data }
                     }
                 case 6:
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     if (!hasParticleEffectGroup(data, view[3]!, +view[5]!)) return
                     return { component: markRaw(ViewParticleEffectGroup), data }
                 case 8:
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                     if (!hasParticleEffectGroupParticle(data, view[3]!, +view[5]!, +view[7]!))
                         return
                     return { component: markRaw(ViewParticleEffectGroupParticle), data }

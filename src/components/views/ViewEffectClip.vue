@@ -12,7 +12,6 @@ const props = defineProps<{
 const v = useView(
     props,
     'effects',
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (v, view) => v.value.data.clips.find(({ name }) => name === view.value[3])!,
 )
 </script>

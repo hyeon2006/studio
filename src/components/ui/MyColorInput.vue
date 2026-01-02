@@ -37,14 +37,12 @@ const rgba = computed(() => {
 
     const rgb =
         value.length === (props.alpha ? 4 : 3)
-            ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              `${value[0]!}${value[0]!}${value[1]!}${value[1]!}${value[2]!}${value[2]!}`
+            ? `${value[0]!}${value[0]!}${value[1]!}${value[1]!}${value[2]!}${value[2]!}`
             : value.slice(0, 6)
 
     const a = props.alpha
         ? value.length === 4
-            ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              `${value[3]!}${value[3]!}`
+            ? `${value[3]!}${value[3]!}`
             : value.slice(6, 8)
         : '00'
 

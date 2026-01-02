@@ -24,7 +24,6 @@ const { copy, paste } = useClipboard()
 const v = useView(
     props,
     'skins',
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (v, view) => v.value.data.sprites.find(({ name }) => name === view.value[3])!,
 )
 

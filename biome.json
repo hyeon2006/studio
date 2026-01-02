@@ -76,7 +76,6 @@
         "noCommonJs": "error",
         "noInferrableTypes": "error",
         "noNamespace": "error",
-        "noNonNullAssertion": "error",
         "useArrayLiterals": "error",
         "useAsConstAssertion": "error",
         "useBlockStatements": "off",

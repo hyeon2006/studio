@@ -28,7 +28,6 @@ const { copy, paste } = useClipboard()
 const v = useView(props, 'backgrounds')
 
 const imageAspectRatio = ref<number>()
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
 watchEffect(async () => {
     try {
         const { width, height } = await getImageInfo(props.data.image)
