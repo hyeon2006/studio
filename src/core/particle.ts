@@ -304,7 +304,13 @@ function packParticle(
                                 )
                                 if (spriteIndex === -1) {
                                     throw new Error(
-                                        `Sprite not specified in particle "${name}" effect "${effectName}" group #${groupIndex + 1} particle #${particleIndex + 1}`,
+                                        [
+                                            `Sprite not specified in particle "${name}"`,
+                                            `Effect: "${effectName}"`,
+                                            `Group: #${groupIndex}`,
+                                            `Particle: #${particleIndex}`,
+                                            'Please select a sprite for this particle.',
+                                        ].join('\n'),
                                     )
                                 }
                                 const p: Partial<ParticleDataGroupParticle> = {
