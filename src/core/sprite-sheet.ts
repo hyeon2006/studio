@@ -53,7 +53,8 @@ async function calculateLayout(sprite: SpriteLayout[], size: number) {
         .sort(
             (a, b) =>
                 b.width * b.height - a.width * a.height ||
-                b.width + b.height - (a.width + a.height),
+                b.width + b.height - (a.width + a.height) ||
+                a.name.localeCompare(b.name),
         )
         .map(({ name, w, h, width, height }) => {
             const spaceIndex = spaces.findIndex(

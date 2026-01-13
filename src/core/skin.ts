@@ -154,7 +154,10 @@ function packSkin(
             >()
             const spriteMapping = new Map<string, string>()
             const textureHashCache = new Map<string, string>()
-            for (const s of skin.data.sprites) {
+            const sortedSprites = [...skin.data.sprites].sort((a, b) =>
+                a.name.localeCompare(b.name),
+            )
+            for (const s of sortedSprites) {
                 let hash = textureHashCache.get(s.texture)
                 if (!hash) {
                     const result = await packRaw(s.texture)

@@ -278,7 +278,11 @@ function packParticle(
     tasks.push({
         description: `Packing particle "${name}" texture...`,
         async execute() {
-            for (const { name: effectName, transform, groups } of particle.data.effects) {
+            const sortedEffects = [...particle.data.effects].sort((a, b) =>
+                a.name.localeCompare(b.name),
+            )
+
+            for (const { name: effectName, transform, groups } of sortedEffects) {
                 particleData.effects.push({
                     name: effectName,
                     transform: {
@@ -364,11 +368,14 @@ function packParticle(
 
             ctx.clearRect(0, 0, size, size)
 
+            particleData.sprites = new Array(particle.data.sprites.length)
+
             for (const { name, x, y, w, h } of layouts) {
-                const sprite = particle.data.sprites.find(({ id }) => id === name)
+                const spriteIndex = particle.data.sprites.findIndex(({ id }) => id === name)
+                const sprite = particle.data.sprites[spriteIndex]
                 if (!sprite) throw new Error('Unexpected missing sprite')
 
-                particleData.sprites[particle.data.sprites.indexOf(sprite)] = {
+                particleData.sprites[spriteIndex] = {
                     x: x + (sprite.padding.left ? 1 : 0),
                     y: y + (sprite.padding.top ? 1 : 0),
                     w,
