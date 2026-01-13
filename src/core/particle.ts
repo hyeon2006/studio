@@ -278,9 +278,9 @@ function packParticle(
     tasks.push({
         description: `Packing particle "${name}" texture...`,
         async execute() {
-            for (const { name, transform, groups } of particle.data.effects) {
+            for (const { name: effectName, transform, groups } of particle.data.effects) {
                 particleData.effects.push({
-                    name,
+                    name: effectName,
                     transform: {
                         x1: prune(transform.x1),
                         x2: prune(transform.x2),
@@ -291,15 +291,24 @@ function packParticle(
                         y3: prune(transform.y3),
                         y4: prune(transform.y4),
                     },
-                    groups: groups.map(({ name: groupName, count, particles }) => ({
+                    groups: groups.map(({ name: groupName, count, particles }, groupIndex) => ({
                         name: groupName,
                         count,
                         particles: particles.map(
-                            ({ spriteId, color, start, duration, x, y, w, h, r, a }) => {
+                            (
+                                { spriteId, color, start, duration, x, y, w, h, r, a },
+                                particleIndex,
+                            ) => {
+                                const spriteIndex = particle.data.sprites.findIndex(
+                                    ({ id }) => id === spriteId,
+                                )
+                                if (spriteIndex === -1) {
+                                    throw new Error(
+                                        `Sprite not specified in particle "${name}" effect "${effectName}" group #${groupIndex + 1} particle #${particleIndex + 1}`,
+                                    )
+                                }
                                 const p: Partial<ParticleDataGroupParticle> = {
-                                    sprite: particle.data.sprites.findIndex(
-                                        ({ id }) => id === spriteId,
-                                    ),
+                                    sprite: spriteIndex,
                                     color,
                                     start,
                                     duration,
