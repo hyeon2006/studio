@@ -212,6 +212,13 @@ function packSkin(
                 })
             }
 
+            skinData.sprites.sort((a, b) => {
+                const sizeA = a.w * a.h
+                const sizeB = b.w * b.h
+                if (sizeA !== sizeB) return sizeB - sizeA
+                return a.name.localeCompare(b.name)
+            })
+
             for (const { name, x, y, w, h } of layouts) {
                 const sprite = skin.data.sprites.find((s) => s.name === name)
                 if (!sprite) throw new Error('Unexpected missing sprite')
