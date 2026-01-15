@@ -157,18 +157,11 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
     let addedCount = 0
 
     for (const sprite of data.sprites) {
-        let newName = sprite.name
-
-        if (newSkin.data.sprites.some((s) => s.name === newName)) {
-            let i = 1
-            while (newSkin.data.sprites.some((s) => s.name === `${sprite.name} (${i})`)) {
-                i++
-            }
-            newName = `${sprite.name} (${i})`
+        if (newSkin.data.sprites.some((s) => s.name === sprite.name)) {
+            continue
         }
 
         const newSprite = clone(sprite)
-        newSprite.name = newName
         newSkin.data.sprites.push(newSprite)
         addedCount++
     }
@@ -183,6 +176,8 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
 
     if (addedCount > 0) {
         alert(`Pasted ${addedCount} sprites`)
+    } else {
+        alert('No new sprites pasted (duplicates skipped)')
     }
 }
 
