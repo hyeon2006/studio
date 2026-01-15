@@ -71,13 +71,13 @@ onMounted(async () => {
                     <MyButton
                         :icon="IconCheck"
                         text="Select All"
-                        class="flex-shrink-0 whitespace-nowrap"
+                        class="shrink-0 whitespace-nowrap"
                         @click="selectAll"
                     />
                     <MyButton
                         :icon="IconTimes"
                         text="Deselect All"
-                        class="flex-shrink-0 whitespace-nowrap"
+                        class="shrink-0 whitespace-nowrap"
                         @click="deselectAll"
                     />
                 </div>
