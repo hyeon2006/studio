@@ -157,6 +157,20 @@ function stopResize() {
                     <IconClone class="icon" />
                 </button>
                 <button
+                    v-if="item.onCopy"
+                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    @click.stop="item.onCopy?.()"
+                >
+                    <IconClone class="icon" />
+                </button>
+                <button
+                    v-if="item.onPaste"
+                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    @click.stop="item.onPaste?.()"
+                >
+                    <IconFile class="icon" />
+                </button>
+                <button
                     v-if="item.onRename"
                     class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
                     @click.stop="item.onRename?.()"

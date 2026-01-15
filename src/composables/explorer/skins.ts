@@ -1,7 +1,8 @@
 import { SkinSpriteName } from '@sonolus/core'
 import { markRaw } from 'vue'
 import ModalName from '../../components/modals/ModalName.vue'
-import { formatSkinSpriteName, newSkin, newSkinSprite } from '../../core/skin'
+import ModalSelectSprites from '../../components/modals/ModalSelectSprites.vue'
+import { formatSkinSpriteName, newSkin, newSkinSprite, type Skin } from '../../core/skin'
 import { clone } from '../../core/utils'
 import IconClone from '../../icons/clone-solid.svg?component'
 import IconDot from '../../icons/dot-circle-regular.svg?component'
@@ -12,6 +13,7 @@ import IconPlus from '../../icons/plus-solid.svg?component'
 import { show } from '../modal'
 import { push, type UseStateReturn } from '../state'
 import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
+import { useClipboard } from '../clipboard'
 
 export function addSkinItems(state: UseStateReturn, items: ExplorerItem[]) {
     items.push({
@@ -58,6 +60,12 @@ export function addSkinItems(state: UseStateReturn, items: ExplorerItem[]) {
             title: `Sprites (${skin.data.sprites.length})`,
             onNew: () => {
                 void onNewSkinSprite(state, name)
+            },
+            onCopy: () => {
+                void onCopySkinSprites(state, name)
+            },
+            onPaste: () => {
+                void onPasteSkinSprites(state, name)
             },
             onDelete: () => {
                 onDeleteSkinSprites(state, name)
@@ -114,6 +122,68 @@ async function onNewSkinSprite({ project, isExplorerOpened }: UseStateReturn, na
     })
 
     isExplorerOpened.value = false
+}
+async function onCopySkinSprites({ project }: UseStateReturn, name: string) {
+    const skin = project.value.skins.get(name)
+    if (!skin) throw new Error('Skin not found')
+
+    const selectedNames = (await show(ModalSelectSprites, {
+        icon: markRaw(IconClone),
+        title: `Copy Sprites from "${name}"`,
+        sprites: skin.data.sprites.map((s) => s.name),
+    })) as string[] | undefined
+
+    if (!selectedNames || selectedNames.length === 0) return
+
+    const spritesToCopy = skin.data.sprites.filter((s) => selectedNames.includes(s.name))
+
+    const { copy } = useClipboard()
+    await copy('skin-sprites', { sprites: spritesToCopy })
+}
+
+async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
+    const skin = project.value.skins.get(name)
+    if (!skin) throw new Error('Skin not found')
+
+    const { read } = useClipboard()
+    const data = (await read('skin-sprites')) as { sprites: Skin['data']['sprites'] } | null
+
+    if (!data || !Array.isArray(data.sprites)) {
+        alert('Clipboard does not contain skin sprites')
+        return
+    }
+
+    const newSkin = clone(skin)
+    let addedCount = 0
+
+    for (const sprite of data.sprites) {
+        let newName = sprite.name
+
+        if (newSkin.data.sprites.some((s) => s.name === newName)) {
+            let i = 1
+            while (newSkin.data.sprites.some((s) => s.name === `${sprite.name} (${i})`)) {
+                i++
+            }
+            newName = `${sprite.name} (${i})`
+        }
+
+        const newSprite = clone(sprite)
+        newSprite.name = newName
+        newSkin.data.sprites.push(newSprite)
+        addedCount++
+    }
+
+    const skins = new Map(project.value.skins)
+    skins.set(name, newSkin)
+
+    push({
+        ...project.value,
+        skins,
+    })
+
+    if (addedCount > 0) {
+        alert(`Pasted ${addedCount} sprites`)
+    }
 }
 
 function onDeleteSkinSprites({ project }: UseStateReturn, name: string) {

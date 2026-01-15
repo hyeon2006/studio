@@ -217,9 +217,24 @@ export function useClipboard() {
             alert('Failed to paste')
         }
     }
+    async function read(type: string) {
+        const text = localStorage.getItem(CLIPBOARD_KEY)
+        if (!text) return null
+
+        try {
+            const item = JSON.parse(text) as ClipboardItem
+            if (item.type !== type) return null
+
+            return await deserialize(item.data)
+        } catch (err) {
+            console.error(err)
+            return null
+        }
+    }
 
     return {
         copy,
         paste,
+        read,
     }
 }

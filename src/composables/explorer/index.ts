@@ -26,6 +26,8 @@ export interface ExplorerItem {
     onRename?: () => void
     onClone?: () => void
     onDelete?: () => void
+    onCopy?: () => void
+    onPaste?: () => void
 }
 
 const openedPaths = reactive(new Map<string, true>())
