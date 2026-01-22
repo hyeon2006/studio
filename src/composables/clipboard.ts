@@ -1,3 +1,5 @@
+import { packRaw } from '../core/utils'
+
 const CLIPBOARD_KEY = 'sonolus_studio_clipboard'
 
 interface SerializedFile {
@@ -108,6 +110,36 @@ function collectDependencies(data: unknown, rootSprites: Sprite[]): Sprite[] {
     return Array.from(dependencies.values())
 }
 
+function replaceSpriteIds(data: unknown, replacements: Map<string, string>) {
+    const visited = new Set<unknown>()
+
+    function traverse(obj: unknown) {
+        if (typeof obj !== 'object' || obj === null) return
+        if (visited.has(obj)) return
+        visited.add(obj)
+
+        if (hasSpriteId(obj)) {
+            const r = obj as unknown as Record<string, unknown>
+            const oldId = r.spriteId as string
+            if (replacements.has(oldId)) {
+                r.spriteId = replacements.get(oldId)
+            }
+        }
+
+        if (Array.isArray(obj)) {
+            obj.forEach((item) => {
+                traverse(item)
+            })
+        } else {
+            Object.values(obj as Record<string, unknown>).forEach((val) => {
+                traverse(val)
+            })
+        }
+    }
+
+    traverse(data)
+}
+
 async function serialize(data: unknown): Promise<unknown> {
     if (data instanceof File) {
         return {
@@ -141,6 +173,59 @@ async function deserialize(data: unknown): Promise<unknown> {
         return result
     }
     return data
+}
+
+async function getHash(url: string) {
+    if (!url) return ''
+    try {
+        const { hash } = await packRaw(url)
+        return hash
+    } catch {
+        return ''
+    }
+}
+
+async function resolveDependencies(root: HasSprites, dependencies: Sprite[]) {
+    const idReplacement = new Map<string, string>()
+    const rootSpriteHashes = new Map<string, string>()
+
+    const getRootSpriteHash = async (sprite: Sprite) => {
+        if (rootSpriteHashes.has(sprite.id)) return rootSpriteHashes.get(sprite.id)!
+        const hash = await getHash(sprite.texture as string)
+        rootSpriteHashes.set(sprite.id, hash)
+        return hash
+    }
+
+    for (const depSprite of dependencies) {
+        const existsById = root.data.sprites.find((s) => s.id === depSprite.id)
+        if (existsById) continue
+
+        const depHash = await getHash(depSprite.texture as string)
+        if (!depHash) {
+            root.data.sprites.push(depSprite)
+            console.log(`Auto-added missing sprite (no hash): ${depSprite.id}`)
+            continue
+        }
+
+        let foundMatch: Sprite | undefined
+        for (const s of root.data.sprites) {
+            const sHash = await getRootSpriteHash(s)
+            if (sHash === depHash) {
+                foundMatch = s
+                break
+            }
+        }
+
+        if (foundMatch) {
+            console.log(`Reused existing sprite: ${depSprite.id} -> ${foundMatch.id}`)
+            idReplacement.set(depSprite.id, foundMatch.id)
+        } else {
+            root.data.sprites.push(depSprite)
+            console.log(`Auto-added missing sprite: ${depSprite.id}`)
+        }
+    }
+
+    return idReplacement
 }
 
 export function useClipboard() {
@@ -194,13 +279,10 @@ export function useClipboard() {
 
             if (hasSprites(root) && Array.isArray(item.dependencies)) {
                 const deserializedDeps = (await deserialize(item.dependencies)) as Sprite[]
+                const idReplacement = await resolveDependencies(root, deserializedDeps)
 
-                for (const depSprite of deserializedDeps) {
-                    const exists = root.data.sprites.some((s) => s.id === depSprite.id)
-                    if (!exists) {
-                        root.data.sprites.push(depSprite)
-                        console.log(`Auto-added missing sprite: ${depSprite.id}`)
-                    }
+                if (idReplacement.size > 0) {
+                    replaceSpriteIds(deserializedData, idReplacement)
                 }
             }
 
@@ -217,7 +299,7 @@ export function useClipboard() {
             alert('Failed to paste')
         }
     }
-    async function read(type: string) {
+    async function read(type: string, root?: unknown) {
         const text = localStorage.getItem(CLIPBOARD_KEY)
         if (!text) return null
 
@@ -225,7 +307,18 @@ export function useClipboard() {
             const item = JSON.parse(text) as ClipboardItem
             if (item.type !== type) return null
 
-            return await deserialize(item.data)
+            const deserializedData = await deserialize(item.data)
+
+            if (hasSprites(root) && Array.isArray(item.dependencies)) {
+                const deserializedDeps = (await deserialize(item.dependencies)) as Sprite[]
+                const idReplacement = await resolveDependencies(root, deserializedDeps)
+
+                if (idReplacement.size > 0) {
+                    replaceSpriteIds(deserializedData, idReplacement)
+                }
+            }
+
+            return deserializedData
         } catch (err) {
             console.error(err)
             return null

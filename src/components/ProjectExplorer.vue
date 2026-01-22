@@ -11,10 +11,13 @@ import {
 import { useState } from '../composables/state'
 import IconAngleDown from '../icons/angle-down-solid.svg?component'
 import IconAngleRight from '../icons/angle-right-solid.svg?component'
+import IconBox from '../icons/box-solid.svg?component'
 import IconClone from '../icons/clone-solid.svg?component'
 import IconEdit from '../icons/edit-solid.svg?component'
 import IconFile from '../icons/file-solid.svg?component'
+import IconList from '../icons/list-solid.svg?component'
 import IconPlus from '../icons/plus-solid.svg?component'
+import IconTimes from '../icons/times-solid.svg?component'
 import IconTrash from '../icons/trash-alt-solid.svg?component'
 import MyImageIcon from './ui/MyImageIcon.vue'
 import { resolveViewInfo } from './ViewManager'
@@ -24,6 +27,7 @@ const { tree } = useExplorer()
 
 const isResizing = ref(false)
 const isDesktop = ref(window.innerWidth >= 640)
+const activeItem = ref<string>('')
 
 watchEffect(() => {
     if (!resolveViewInfo(project.value, view.value)) return
@@ -59,6 +63,14 @@ function onWindowResize() {
         if (sidebarWidth.value > maxWidth) {
             sidebarWidth.value = maxWidth
         }
+    }
+}
+
+function toggleMore(key: string) {
+    if (activeItem.value === key) {
+        activeItem.value = ''
+    } else {
+        activeItem.value = key
     }
 }
 
@@ -142,48 +154,72 @@ function stopResize() {
                 <div class="ml-2 flex-1 truncate text-left">
                     {{ item.title }}
                 </div>
-                <button
-                    v-if="item.onNew"
-                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                    @click.stop="item.onNew?.()"
+                <div
+                    class="flex h-full flex-none items-center transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                    :class="{
+                        'sm:!opacity-100': activeItem === toKey(item.path),
+                    }"
                 >
-                    <IconPlus class="icon" />
-                </button>
-                <button
-                    v-if="item.onClone"
-                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                    @click.stop="item.onClone?.()"
-                >
-                    <IconClone class="icon" />
-                </button>
-                <button
-                    v-if="item.onCopy"
-                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                    @click.stop="item.onCopy?.()"
-                >
-                    <IconClone class="icon" />
-                </button>
-                <button
-                    v-if="item.onPaste"
-                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                    @click.stop="item.onPaste?.()"
-                >
-                    <IconFile class="icon" />
-                </button>
-                <button
-                    v-if="item.onRename"
-                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                    @click.stop="item.onRename?.()"
-                >
-                    <IconEdit class="icon" />
-                </button>
-                <button
-                    v-if="item.onDelete"
-                    class="h-full flex-none px-2 transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                    @click.stop="item.onDelete()"
-                >
-                    <IconTrash class="icon" />
-                </button>
+                    <template v-if="activeItem !== toKey(item.path)">
+                        <button
+                            v-if="item.onNew"
+                            class="h-full px-2"
+                            @click.stop="item.onNew?.()"
+                        >
+                            <IconPlus class="icon" />
+                        </button>
+                        <button
+                            v-if="item.onRename"
+                            class="h-full px-2"
+                            @click.stop="item.onRename?.()"
+                        >
+                            <IconEdit class="icon" />
+                        </button>
+                        <button
+                            v-if="item.onDelete"
+                            class="h-full px-2"
+                            @click.stop="item.onDelete()"
+                        >
+                            <IconTrash class="icon" />
+                        </button>
+                        <button
+                            v-if="item.onClone || item.onCopy || item.onPaste"
+                            class="h-full px-2"
+                            @click.stop="toggleMore(toKey(item.path))"
+                        >
+                            <IconList class="icon" />
+                        </button>
+                    </template>
+                    <template v-else>
+                        <button
+                            v-if="item.onClone"
+                            class="h-full px-2"
+                            @click.stop="item.onClone?.()"
+                        >
+                            <IconClone class="icon" />
+                        </button>
+                        <button
+                            v-if="item.onCopy"
+                            class="h-full px-2"
+                            @click.stop="item.onCopy?.()"
+                        >
+                            <IconBox class="icon" />
+                        </button>
+                        <button
+                            v-if="item.onPaste"
+                            class="h-full px-2"
+                            @click.stop="item.onPaste?.()"
+                        >
+                            <IconFile class="icon" />
+                        </button>
+                        <button
+                            class="h-full px-2"
+                            @click.stop="toggleMore(toKey(item.path))"
+                        >
+                            <IconTimes class="icon" />
+                        </button>
+                    </template>
+                </div>
             </div>
         </div>
 
