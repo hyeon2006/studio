@@ -349,6 +349,12 @@ function packParticle(
                 })
             }
 
+            for (const [index, sprite] of particle.data.sprites.entries()) {
+                if (!sprite.texture) {
+                    throw new Error(`Sprite #${index + 1} in particle "${name}" is not specified.`)
+                }
+            }
+
             const { size, layouts } = await tryCalculateLayout(
                 particle.data.sprites.map(({ id, padding, texture }) => ({
                     name: id,
