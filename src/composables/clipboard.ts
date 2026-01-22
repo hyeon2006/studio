@@ -13,6 +13,12 @@ interface SerializedFile {
     data: string
 }
 
+interface SerializedBlobUrl {
+    __type: 'BlobUrl'
+    data: string
+    mimeType: string
+}
+
 interface ClipboardItem {
     type: string
     data: unknown
@@ -38,7 +44,7 @@ interface PasteOptions {
     exclude?: string[]
 }
 
-function fileToDataUrl(file: File): Promise<string> {
+function fileToDataUrl(file: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onload = () => {
@@ -61,6 +67,15 @@ function isSerializedFile(data: unknown): data is SerializedFile {
         data !== null &&
         '__type' in data &&
         (data as Record<string, unknown>).__type === 'File'
+    )
+}
+
+function isSerializedBlobUrl(data: unknown): data is SerializedBlobUrl {
+    return (
+        typeof data === 'object' &&
+        data !== null &&
+        '__type' in data &&
+        (data as Record<string, unknown>).__type === 'BlobUrl'
     )
 }
 
@@ -152,6 +167,19 @@ async function serialize(data: unknown): Promise<unknown> {
             type: data.type,
             data: await fileToDataUrl(data),
         } as SerializedFile
+    } else if (typeof data === 'string' && data.startsWith('blob:')) {
+        try {
+            const res = await fetch(data)
+            const blob = await res.blob()
+            return {
+                __type: 'BlobUrl',
+                data: await fileToDataUrl(blob),
+                mimeType: blob.type,
+            } as SerializedBlobUrl
+        } catch (error) {
+            console.warn('Failed to serialize blob URL:', data, error)
+            return data
+        }
     } else if (Array.isArray(data)) {
         return Promise.all(data.map(serialize))
     } else if (typeof data === 'object' && data !== null) {
@@ -167,6 +195,10 @@ async function serialize(data: unknown): Promise<unknown> {
 async function deserialize(data: unknown): Promise<unknown> {
     if (isSerializedFile(data)) {
         return await dataUrlToFile(data.data, data.name, data.type)
+    } else if (isSerializedBlobUrl(data)) {
+        const res = await fetch(data.data)
+        const blob = await res.blob()
+        return URL.createObjectURL(blob)
     } else if (Array.isArray(data)) {
         return Promise.all(data.map(deserialize))
     } else if (typeof data === 'object' && data !== null) {
