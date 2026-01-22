@@ -158,6 +158,12 @@ function packSkin(
                 a.name.localeCompare(b.name),
             )
             for (const s of sortedSprites) {
+                if (!s.texture) {
+                    throw new Error(
+                        `Sprite "${formatSkinSpriteName(s.name)}" in skin "${name}" is not specified.`,
+                    )
+                }
+
                 let hash = textureHashCache.get(s.texture)
                 if (!hash) {
                     const result = await packRaw(s.texture)
