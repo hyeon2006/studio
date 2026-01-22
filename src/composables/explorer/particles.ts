@@ -6,7 +6,6 @@ import ModalTextInput from '../../components/modals/ModalTextInput.vue'
 import { newId } from '../../core/id'
 import {
     type Particle,
-    type ParticleDataGroup,
     formatParticleEffectName,
     newParticle,
     newParticleEffect,
@@ -23,6 +22,8 @@ import IconFile from '../../icons/file-solid.svg?component'
 import IconFolder from '../../icons/folder-solid.svg?component'
 import IconParticle from '../../icons/particle.svg?component'
 import IconPlus from '../../icons/plus-solid.svg?component'
+import ModalErrorCancel from '../../components/modals/ModalErrorCancel.vue'
+import IconCheck from '../../icons/check-solid.svg?component'
 import { useClipboard } from '../clipboard'
 import { show } from '../modal'
 import { push, type UseStateReturn } from '../state'
@@ -300,7 +301,9 @@ async function onPasteParticleSprites({ project }: UseStateReturn, name: string)
     } | null
 
     if (!data || !Array.isArray(data.sprites)) {
-        alert('Clipboard does not contain particle sprites')
+        await show(ModalErrorCancel, {
+            message: 'Clipboard does not contain particle sprites',
+        })
         return
     }
 
@@ -335,9 +338,19 @@ async function onPasteParticleSprites({ project }: UseStateReturn, name: string)
     })
 
     if (addedCount > 0) {
-        alert(`Pasted ${addedCount} sprites`)
+        await show(ModalErrorCancel, {
+            title: 'Success',
+            icon: markRaw(IconCheck),
+            message: `Pasted ${addedCount} sprites`,
+            text: 'OK',
+        })
     } else {
-        alert('No new sprites pasted (duplicates skipped)')
+        await show(ModalErrorCancel, {
+            title: 'Info',
+            icon: markRaw(IconCheck),
+            message: 'No new sprites pasted (duplicates skipped)',
+            text: 'OK',
+        })
     }
 }
 
@@ -398,7 +411,9 @@ async function onPasteParticleEffects({ project }: UseStateReturn, name: string)
     } | null
 
     if (!data || !Array.isArray(data.effects)) {
-        alert('Clipboard does not contain particle effects')
+        await show(ModalErrorCancel, {
+            message: 'Clipboard does not contain particle effects',
+        })
         return
     }
 
@@ -430,7 +445,12 @@ async function onPasteParticleEffects({ project }: UseStateReturn, name: string)
         particles,
     })
 
-    alert(`Pasted ${addedCount} effects`)
+    await show(ModalErrorCancel, {
+        title: 'Success',
+        icon: markRaw(IconCheck),
+        message: `Pasted ${addedCount} effects`,
+        text: 'OK',
+    })
 }
 
 function onNewParticleEffectGroup({ project }: UseStateReturn, name: string, effectName: string) {
@@ -504,11 +524,13 @@ async function onPasteParticleEffectGroups(
 
     const { read } = useClipboard()
     const data = (await read('particle-effect-groups', particle)) as {
-        groups: ParticleDataGroup[]
+        groups: Particle['data']['effects'][number]['groups']
     } | null
 
     if (!data || !Array.isArray(data.groups)) {
-        alert('Clipboard does not contain particle effect groups')
+        await show(ModalErrorCancel, {
+            message: 'Clipboard does not contain particle effect groups',
+        })
         return
     }
 
@@ -533,7 +555,12 @@ async function onPasteParticleEffectGroups(
         particles,
     })
 
-    alert(`Pasted ${addedCount} groups`)
+    await show(ModalErrorCancel, {
+        title: 'Success',
+        icon: markRaw(IconCheck),
+        message: `Pasted ${addedCount} groups`,
+        text: 'OK',
+    })
 }
 
 function onNewParticleEffectGroupParticle(

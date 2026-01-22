@@ -1,4 +1,8 @@
+import { markRaw } from 'vue'
+import ModalErrorCancel from '../components/modals/ModalErrorCancel.vue'
 import { packRaw } from '../core/utils'
+import IconCheck from '../icons/check-solid.svg?component'
+import { show } from './modal'
 
 const CLIPBOARD_KEY = 'sonolus_studio_clipboard'
 
@@ -248,10 +252,17 @@ export function useClipboard() {
                     dependencies: serializedDependencies,
                 }),
             )
-            alert('Copied to clipboard')
+            await show(ModalErrorCancel, {
+                title: 'Success',
+                icon: markRaw(IconCheck),
+                message: 'Copied to clipboard',
+                text: 'OK',
+            })
         } catch (err) {
             console.error(err)
-            alert('Failed to copy (File processing error)')
+            await show(ModalErrorCancel, {
+                message: 'Failed to copy (File processing error)',
+            })
         }
     }
 
@@ -263,7 +274,9 @@ export function useClipboard() {
     ) {
         const text = localStorage.getItem(CLIPBOARD_KEY)
         if (!text) {
-            alert('Clipboard is empty')
+            await show(ModalErrorCancel, {
+                message: 'Clipboard is empty',
+            })
             return
         }
 
@@ -271,7 +284,9 @@ export function useClipboard() {
             const item = JSON.parse(text) as ClipboardItem
 
             if (item.type !== type) {
-                alert(`Type mismatch\nClipboard: ${item.type}\nTarget: ${type}`)
+                await show(ModalErrorCancel, {
+                    message: `Type mismatch\nClipboard: ${item.type}\nTarget: ${type}`,
+                })
                 return
             }
 
@@ -293,10 +308,17 @@ export function useClipboard() {
             }
 
             Object.assign(target, deserializedData)
-            alert('Pasted from clipboard')
+            await show(ModalErrorCancel, {
+                title: 'Success',
+                icon: markRaw(IconCheck),
+                message: 'Pasted from clipboard',
+                text: 'OK',
+            })
         } catch (err) {
             console.error(err)
-            alert('Failed to paste')
+            await show(ModalErrorCancel, {
+                message: 'Failed to paste',
+            })
         }
     }
     async function read(type: string, root?: unknown) {
