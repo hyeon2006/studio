@@ -89,8 +89,8 @@ export function replace(project: Project) {
 export function undo() {
     if (state.index <= 0) return
 
-    updateView()
     state.index--
+    updateView()
     clearUpdater()
 }
 

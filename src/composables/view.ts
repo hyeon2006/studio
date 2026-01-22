@@ -42,22 +42,11 @@ export function useView<T extends object, U = T>(
     }
 
     function update(path: string[], value: unknown) {
-        updateLocalData(localData.value, path.slice(1), value)
-
-        triggerRef(localData)
-
-        const newProps = { ...props, data: clone(localData.value) }
-
-        path.reduce(
-            (data, key, index) =>
-                index === path.length - 1
-                    ? (data[key as never] = value as never)
-                    : data[key as never],
-            newProps,
-        )
+        const newData = clone(localData.value)
+        updateLocalData(newData, path.slice(1), value)
 
         const items = new Map(project.value[type] as never)
-        items.set(view.value[1], newProps.data)
+        items.set(view.value[1], newData)
 
         push(
             {
