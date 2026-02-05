@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -130,7 +130,11 @@
         "useSortedClasses": "error"
       }
     },
-    "includes": ["**", "!**/*.*", "src/**/*.*"]
+    "includes": [
+      "**",
+      "!**/*.*",
+      "src/**/*.*"
+    ]
   },
   "css": {
     "parser": {
@@ -265,7 +269,13 @@
   },
   "overrides": [
     {
-      "includes": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.vue"],
+      "includes": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.cts",
+        "**/*.vue"
+      ],
       "linter": {
         "rules": {
           "complexity": {
@@ -304,7 +314,12 @@
       }
     },
     {
-      "includes": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+      "includes": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.cts"
+      ],
       "linter": {
         "rules": {
           "complexity": {
@@ -340,7 +355,10 @@
       }
     },
     {
-      "includes": ["*.vue", "**/*.vue"],
+      "includes": [
+        "*.vue",
+        "**/*.vue"
+      ],
       "javascript": {
         "globals": []
       },
