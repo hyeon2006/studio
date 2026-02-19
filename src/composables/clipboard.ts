@@ -233,8 +233,12 @@ async function resolveDependencies(root: HasSprites, dependencies: Sprite[]) {
     }
 
     for (const depSprite of dependencies) {
-        const existsById = root.data.sprites.find((s) => s.id === depSprite.id)
-        if (existsById) continue
+        const existingIndex = root.data.sprites.findIndex((s) => s.id === depSprite.id)
+        if (existingIndex !== -1) {
+            root.data.sprites.splice(existingIndex, 1, depSprite)
+            console.log(`Overwrote existing sprite: ${depSprite.id}`)
+            continue
+        }
 
         const depHash = await getHash(depSprite.texture as string)
         if (!depHash) {

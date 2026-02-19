@@ -157,12 +157,14 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
     let addedCount = 0
 
     for (const sprite of data.sprites) {
-        if (newSkin.data.sprites.some((s) => s.name === sprite.name)) {
-            continue
-        }
-
+        const existingIndex = newSkin.data.sprites.findIndex((s) => s.name === sprite.name)
         const newSprite = clone(sprite)
-        newSkin.data.sprites.push(newSprite)
+
+        if (existingIndex !== -1) {
+            newSkin.data.sprites.splice(existingIndex, 1, newSprite)
+        } else {
+            newSkin.data.sprites.push(newSprite)
+        }
         addedCount++
     }
 
@@ -177,7 +179,7 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
     if (addedCount > 0) {
         alert(`Pasted ${addedCount} sprites`)
     } else {
-        alert('No new sprites pasted (duplicates skipped)')
+        alert('No new sprites pasted (or overwritten)')
     }
 }
 

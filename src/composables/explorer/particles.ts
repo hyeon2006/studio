@@ -348,7 +348,7 @@ async function onPasteParticleSprites({ project }: UseStateReturn, name: string)
         await show(ModalErrorCancel, {
             title: 'Info',
             icon: markRaw(IconCheck),
-            message: 'No new sprites pasted (duplicates skipped)',
+            message: 'No new sprites pasted (or overwritten)',
             text: 'OK',
         })
     }
@@ -421,19 +421,14 @@ async function onPasteParticleEffects({ project }: UseStateReturn, name: string)
     let addedCount = 0
 
     for (const effect of data.effects) {
-        let effectName = effect.name
-        if (newParticle.data.effects.some((e) => e.name === effectName)) {
-            effectName = `Copy of ${effectName}`
-            let i = 1
-            while (newParticle.data.effects.some((e) => e.name === effectName)) {
-                effectName = `Copy (${i}) of ${effect.name}`
-                i++
-            }
-        }
-
+        const existingIndex = newParticle.data.effects.findIndex((e) => e.name === effect.name)
         const newEffect = clone(effect)
-        newEffect.name = effectName
-        newParticle.data.effects.push(newEffect)
+
+        if (existingIndex !== -1) {
+            newParticle.data.effects.splice(existingIndex, 1, newEffect)
+        } else {
+            newParticle.data.effects.push(newEffect)
+        }
         addedCount++
     }
 
