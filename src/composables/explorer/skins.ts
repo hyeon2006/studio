@@ -10,10 +10,10 @@ import IconEdit from '../../icons/edit-solid.svg?component'
 import IconFileImage from '../../icons/file-image-solid.svg?component'
 import IconFolder from '../../icons/folder-solid.svg?component'
 import IconPlus from '../../icons/plus-solid.svg?component'
+import { useClipboard } from '../clipboard'
 import { show } from '../modal'
 import { push, type UseStateReturn } from '../state'
 import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
-import { useClipboard } from '../clipboard'
 
 export function addSkinItems(state: UseStateReturn, items: ExplorerItem[]) {
     items.push({

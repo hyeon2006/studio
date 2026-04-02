@@ -1,20 +1,21 @@
 import { ParticleEffectName } from '@sonolus/core'
 import { markRaw } from 'vue'
+import ModalErrorCancel from '../../components/modals/ModalErrorCancel.vue'
 import ModalName from '../../components/modals/ModalName.vue'
 import ModalSelectSprites from '../../components/modals/ModalSelectSprites.vue'
 import ModalTextInput from '../../components/modals/ModalTextInput.vue'
 import { newId } from '../../core/id'
 import {
-    type Particle,
     formatParticleEffectName,
     newParticle,
     newParticleEffect,
     newParticleEffectGroup,
     newParticleEffectGroupParticle,
     newParticleSprite,
+    type Particle,
 } from '../../core/particle'
-import { packRaw } from '../../core/utils'
-import { clone } from '../../core/utils'
+import { clone, packRaw } from '../../core/utils'
+import IconCheck from '../../icons/check-solid.svg?component'
 import IconClone from '../../icons/clone-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'
 import IconFileImage from '../../icons/file-image-solid.svg?component'
@@ -22,8 +23,6 @@ import IconFile from '../../icons/file-solid.svg?component'
 import IconFolder from '../../icons/folder-solid.svg?component'
 import IconParticle from '../../icons/particle.svg?component'
 import IconPlus from '../../icons/plus-solid.svg?component'
-import ModalErrorCancel from '../../components/modals/ModalErrorCancel.vue'
-import IconCheck from '../../icons/check-solid.svg?component'
 import { useClipboard } from '../clipboard'
 import { show } from '../modal'
 import { push, type UseStateReturn } from '../state'
