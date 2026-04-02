@@ -1,6 +1,7 @@
 import {
     useDevicePixelRatio,
     useElementSize,
+    useKeyModifier,
     useMouseInElement,
     useMousePressed,
 } from '@vueuse/core'
@@ -12,6 +13,7 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
     const { width, height } = useElementSize(target)
     const { pressed } = useMousePressed({ target })
     const { pixelRatio } = useDevicePixelRatio()
+    const shift = useKeyModifier('Shift')
 
     const position = computed<Point>(() => [
         (elementX.value * 2) / width.value - 1,
@@ -40,6 +42,8 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
         return i
     })
 
+    let dragStartRect: Rect | null = null
+
     watch(pressed, (value) => {
         if (!value) {
             draggingIndex.value = undefined
@@ -47,12 +51,46 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
         }
 
         draggingIndex.value = hoverIndex.value
+
+        if (draggingIndex.value !== undefined) {
+            dragStartRect = [
+                [...rect.value[0]],
+                [...rect.value[1]],
+                [...rect.value[2]],
+                [...rect.value[3]],
+            ] as Rect
+        }
     })
 
-    watchEffect(() => {
-        if (draggingIndex.value === undefined) return
+    watch([position, shift, draggingIndex], () => {
+        if (draggingIndex.value === undefined || !dragStartRect) return
 
-        rect.value[draggingIndex.value] = position.value
+        if (shift.value) {
+            const cx = dragStartRect.reduce((sum, p) => sum + p[0], 0) / 4
+            const cy = dragStartRect.reduce((sum, p) => sum + p[1], 0) / 4
+
+            const startP = dragStartRect[draggingIndex.value]
+            const startDist = Math.hypot(startP[0] - cx, startP[1] - cy)
+            const currentDist = Math.hypot(position.value[0] - cx, position.value[1] - cy)
+
+            const scale = startDist === 0 ? 1 : currentDist / startDist
+
+            for (let i = 0; i < 4; i++) {
+                rect.value[i] = [
+                    cx + (dragStartRect[i][0] - cx) * scale,
+                    cy + (dragStartRect[i][1] - cy) * scale,
+                ]
+            }
+        } else {
+            rect.value[draggingIndex.value] = position.value
+
+            dragStartRect = [
+                [...rect.value[0]],
+                [...rect.value[1]],
+                [...rect.value[2]],
+                [...rect.value[3]],
+            ] as Rect
+        }
     })
 
     return {
