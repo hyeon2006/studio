@@ -47,6 +47,61 @@ export function getSimpleTransform(
     }
 }
 
+export function getCenterTransform(
+    left: number,
+    right: number,
+    top: number,
+    bottom: number,
+): Transform {
+    const p = [
+        {
+            x: { x1: 1, x2: 0, x3: 0, x4: 0, y1: 0, y2: 0, y3: 0, y4: 0 },
+            y: { x1: 0, x2: 0, x3: 0, x4: 0, y1: 1, y2: 0, y3: 0, y4: 0 },
+        },
+        {
+            x: { x1: 0, x2: 1, x3: 0, x4: 0, y1: 0, y2: 0, y3: 0, y4: 0 },
+            y: { x1: 0, x2: 0, x3: 0, x4: 0, y1: 0, y2: 1, y3: 0, y4: 0 },
+        },
+        {
+            x: { x1: 0, x2: 0, x3: 1, x4: 0, y1: 0, y2: 0, y3: 0, y4: 0 },
+            y: { x1: 0, x2: 0, x3: 0, x4: 0, y1: 0, y2: 0, y3: 1, y4: 0 },
+        },
+        {
+            x: { x1: 0, x2: 0, x3: 0, x4: 1, y1: 0, y2: 0, y3: 0, y4: 0 },
+            y: { x1: 0, x2: 0, x3: 0, x4: 0, y1: 0, y2: 0, y3: 0, y4: 1 },
+        },
+    ] as const
+
+    function scaleCenter(a: Point, b: Point, scaleA: number, scaleB: number) {
+        const fA1 = (1 + scaleA) / 2
+        const fA2 = (1 - scaleA) / 2
+        const fB1 = (1 - scaleB) / 2
+        const fB2 = (1 + scaleB) / 2
+
+        return [
+            add(multiply(a, fA1), multiply(b, fA2)),
+            add(multiply(a, fB1), multiply(b, fB2)),
+        ] as const
+    }
+
+    const t = scaleCenter(p[1], p[2], left, right)
+    const b = scaleCenter(p[0], p[3], left, right)
+
+    const l = scaleCenter(b[0], t[0], bottom, top)
+    const r = scaleCenter(b[1], t[1], bottom, top)
+
+    return {
+        x1: l[0].x,
+        x2: l[1].x,
+        x3: r[1].x,
+        x4: r[0].x,
+        y1: l[0].y,
+        y2: l[1].y,
+        y3: r[1].y,
+        y4: r[0].y,
+    }
+}
+
 const keys = ['x1', 'x2', 'x3', 'x4', 'y1', 'y2', 'y3', 'y4'] as const
 
 function scale(a: Point, b: Point, m: number, n: number) {

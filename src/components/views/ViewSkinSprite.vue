@@ -6,6 +6,7 @@ import { type Skin } from '../../core/skin'
 import IconClone from '../../icons/clone-solid.svg?component'
 import IconPaste from '../../icons/file-solid.svg?component'
 import IconVectorSquare from '../../icons/vector-square-solid.svg?component'
+import ModalCenterTransform from '../modals/ModalCenterTransform.vue'
 import ModalSimpleTransform from '../modals/ModalSimpleTransform.vue'
 import MyButton from '../ui/MyButton.vue'
 import MyCellNumberInput from '../ui/MyCellNumberInput.vue'
@@ -33,6 +34,12 @@ async function onSetSimpleTransform() {
     const transform = await show(ModalSimpleTransform, null)
     if (!transform) return
 
+    v.value.transform = transform
+}
+
+async function onSetCenterTransform() {
+    const transform = await show(ModalCenterTransform, null)
+    if (!transform) return
     v.value.transform = transform
 }
 </script>
@@ -99,6 +106,12 @@ async function onSetSimpleTransform() {
             :icon="IconVectorSquare"
             text="Set Simple Transform"
             @click="onSetSimpleTransform()"
+        />
+        <MyButton
+            class="mx-auto mt-2"
+            :icon="IconVectorSquare"
+            text="Set Center Transform"
+            @click="onSetCenterTransform()"
         />
     </MySection>
 
