@@ -7,6 +7,9 @@ import { allZero, type TransformExpression } from '../../core/transform-expressi
 import IconClone from '../../icons/clone-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'
 import IconPaste from '../../icons/file-solid.svg?component'
+import IconVectorSquare from '../../icons/vector-square-solid.svg?component'
+import ModalCenterTransform from '../modals/ModalCenterTransform.vue'
+import ModalSimpleTransform from '../modals/ModalSimpleTransform.vue'
 import ModalTransformExpressionEquation from '../modals/ModalTransformExpressionEquation.vue'
 import MyButton from '../ui/MyButton.vue'
 import MyCellNumberInput from '../ui/MyCellNumberInput.vue'
@@ -37,6 +40,25 @@ async function editEquation(r: (typeof rows)[number]) {
     if (!result) return
 
     v.value.transform[r] = result
+}
+
+async function onSetCenterTransform() {
+    const transform = await show(ModalCenterTransform, null)
+    if (!transform) return
+
+    const keys = ['x1', 'x2', 'x3', 'x4', 'y1', 'y2', 'y3', 'y4'] as const
+    for (const k of keys) {
+        v.value.transform[k] = { ...allZero, ...transform[k] }
+    }
+}
+
+async function onSetSimpleTransform() {
+    const transform = await show(ModalSimpleTransform, null)
+    if (!transform) return
+    const keys = ['x1', 'x2', 'x3', 'x4', 'y1', 'y2', 'y3', 'y4'] as const
+    for (const k of keys) {
+        v.value.transform[k] = { ...allZero, ...transform[k] }
+    }
 }
 </script>
 
@@ -83,6 +105,18 @@ async function editEquation(r: (typeof rows)[number]) {
                 </tr>
             </tbody>
         </table>
+        <MyButton
+            class="mx-auto mt-4"
+            :icon="IconVectorSquare"
+            text="Set Simple Transform"
+            @click="onSetSimpleTransform()"
+        />
+        <MyButton
+            class="mx-auto mt-4"
+            :icon="IconVectorSquare"
+            text="Set Center Transform"
+            @click="onSetCenterTransform()"
+        />
     </MySection>
 
     <MySection header="Preview">
