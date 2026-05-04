@@ -3,6 +3,7 @@ import { useLocalStorage } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { useParticlePreviewOptions } from '../../../composables/particle-preview'
 import IconRotate from '../../../icons/rotate.svg?component'
+import IconUndo from '../../../icons/undo-alt-solid.svg?component'
 import MyButton from '../../ui/MyButton.vue'
 import MyColorInput from '../../ui/MyColorInput.vue'
 import MyField from '../../ui/MyField.vue'
@@ -22,6 +23,7 @@ const emit = defineEmits<{
     'update:elBack': [value: HTMLCanvasElement | undefined]
     'update:elTop': [value: HTMLCanvasElement | undefined]
     'update:randomize': [value: number]
+    reset: []
 }>()
 
 const { backgroundColor, duration, loop } = useParticlePreviewOptions()
@@ -77,10 +79,16 @@ watch(elTopRef, () => {
         </div>
     </div>
 
-    <MyButton
-        class="mx-auto mt-4"
-        :icon="IconRotate"
-        text="Randomize"
-        @click="$emit('update:randomize', randomize + 1)"
-    />
+    <div class="mt-4 flex justify-center gap-4">
+        <MyButton
+            :icon="IconRotate"
+            text="Randomize"
+            @click="$emit('update:randomize', randomize + 1)"
+        />
+        <MyButton
+            :icon="IconUndo"
+            text="Reset"
+            @click="$emit('reset')"
+        />
+    </div>
 </template>

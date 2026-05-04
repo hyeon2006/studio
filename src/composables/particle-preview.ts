@@ -22,7 +22,8 @@ export function useParticlePreview() {
 
     const elBack = ref<HTMLCanvasElement>()
     const elTop = ref<HTMLCanvasElement>()
-    const { rect, canvasWidth, canvasHeight, draggingIndex, hoverIndex } = useCanvas(elTop)
+    const { rect, canvasWidth, canvasHeight, draggingIndex, hoverIndex, resetRect } =
+        useCanvas(elTop)
 
     const ctxBack = computed(() => elBack.value?.getContext('2d'))
     const ctxTop = computed(() => elTop.value?.getContext('2d'))
@@ -45,5 +46,6 @@ export function useParticlePreview() {
         ctxTop,
 
         randomize,
+        resetRect,
     }
 }

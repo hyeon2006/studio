@@ -1,25 +1,21 @@
 import {
     useDevicePixelRatio,
     useElementSize,
+    useEventListener,
     useKeyModifier,
     useLocalStorage,
-    useMouseInElement,
-    useMousePressed,
 } from '@vueuse/core'
 import { computed, type Ref, ref, watch } from 'vue'
 import { type Point, type Rect } from '../core/utils'
 
 export function useCanvas(target: Ref<HTMLElement | undefined>) {
-    const { elementX, elementY } = useMouseInElement(target)
     const { width, height } = useElementSize(target)
-    const { pressed } = useMousePressed({ target })
     const { pixelRatio } = useDevicePixelRatio()
     const shift = useKeyModifier('Shift')
 
-    const position = computed<Point>(() => [
-        (elementX.value * 2) / (width.value || 1) - 1,
-        1 - (elementY.value * 2) / (height.value || 1),
-    ])
+    const isScaleMode = useLocalStorage('preview.scaleMode', false)
+    const isScaling = computed(() => shift.value || isScaleMode.value)
+
     const canvasWidth = computed(() => Math.round(width.value * pixelRatio.value))
     const canvasHeight = computed(() => Math.round(height.value * pixelRatio.value))
 
@@ -31,30 +27,44 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
     ])
 
     const draggingIndex = ref<number>()
+    let dragStartRect: Rect | null = null
+
+    const elementX = ref(0)
+    const elementY = ref(0)
+    const pressed = ref(false)
+
+    const position = computed<Point>(() => [
+        (elementX.value * 2) / (width.value || 1) - 1,
+        1 - (elementY.value * 2) / (height.value || 1),
+    ])
+
     const hoverIndex = computed(() => {
         if (!width.value) return undefined
         const [tx, ty] = position.value
-
         const [i, distance] = rect.value
             .map(([x, y], i) => [i, Math.hypot(tx - x, ty - y)] as const)
             .sort(([, a], [, b]) => a - b)[0]!
 
-        if (distance > 20 / width.value) return
-
+        if (distance > 40 / width.value) return undefined
         return i
     })
 
-    let dragStartRect: Rect | null = null
+    function updatePosition(e: PointerEvent) {
+        if (!target.value) return
+        const r = target.value.getBoundingClientRect()
+        elementX.value = e.clientX - r.left
+        elementY.value = e.clientY - r.top
+    }
 
-    watch(pressed, (value) => {
-        if (!value) {
-            draggingIndex.value = undefined
-            return
-        }
+    useEventListener(target, 'pointerdown', (e: PointerEvent) => {
+        updatePosition(e)
+        pressed.value = true
 
         draggingIndex.value = hoverIndex.value
-
         if (draggingIndex.value !== undefined) {
+            if (e.target instanceof Element) {
+                e.target.setPointerCapture(e.pointerId)
+            }
             dragStartRect = [
                 [...rect.value[0]],
                 [...rect.value[1]],
@@ -64,20 +74,27 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
         }
     })
 
-    const isScaleMode = useLocalStorage('preview.scaleMode', false)
-    const isScaling = computed(() => shift.value || isScaleMode.value)
+    useEventListener(target, 'pointermove', (e: PointerEvent) => {
+        updatePosition(e)
+    })
 
-    watch([position, isScaling, draggingIndex], () => {
-        if (draggingIndex.value === undefined || !dragStartRect) return
+    useEventListener(target, ['pointerup', 'pointercancel'], (e: PointerEvent) => {
+        pressed.value = false
+        draggingIndex.value = undefined
+        if (e.target instanceof Element && e.target.hasPointerCapture(e.pointerId)) {
+            e.target.releasePointerCapture(e.pointerId)
+        }
+    })
+
+    watch([position, isScaling], () => {
+        if (!pressed.value || draggingIndex.value === undefined || !dragStartRect) return
 
         if (isScaling.value) {
             const cx = dragStartRect.reduce((sum, p) => sum + p[0], 0) / 4
             const cy = dragStartRect.reduce((sum, p) => sum + p[1], 0) / 4
-
             const startP = dragStartRect[draggingIndex.value]
             const startDist = Math.hypot(startP[0] - cx, startP[1] - cy)
             const currentDist = Math.hypot(position.value[0] - cx, position.value[1] - cy)
-
             const scale = startDist === 0 ? 1 : currentDist / startDist
 
             for (let i = 0; i < 4; i++) {
@@ -88,7 +105,6 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
             }
         } else {
             rect.value[draggingIndex.value] = position.value
-
             dragStartRect = [
                 [...rect.value[0]],
                 [...rect.value[1]],
@@ -98,11 +114,21 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
         }
     })
 
+    function resetRect() {
+        rect.value = [
+            [-0.5, -0.5],
+            [-0.5, 0.5],
+            [0.5, 0.5],
+            [0.5, -0.5],
+        ]
+    }
+
     return {
         rect,
         canvasWidth,
         canvasHeight,
         draggingIndex,
         hoverIndex,
+        resetRect,
     }
 }

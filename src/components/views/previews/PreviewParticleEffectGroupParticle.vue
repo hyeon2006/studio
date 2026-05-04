@@ -30,6 +30,7 @@ const {
     ctxTop,
 
     randomize,
+    resetRect,
 } = useParticlePreview()
 
 const random = computed(() => (randomize.value, { c: 1, ...getPropertyExpressionRandom() }))
@@ -112,5 +113,6 @@ watchPostEffect(() => {
         :canvas-width="canvasWidth"
         :canvas-height="canvasHeight"
         :dragging-index="draggingIndex"
+        @reset="resetRect"
     />
 </template>

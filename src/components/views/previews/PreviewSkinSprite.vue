@@ -7,8 +7,10 @@ import { execute } from '../../../core/expression'
 import { sample } from '../../../core/sampling'
 import { type Skin } from '../../../core/skin'
 import { getImageBuffer, getImageInfo, type Rect } from '../../../core/utils'
+import IconUndo from '../../../icons/undo-alt-solid.svg?component'
 import MyColorInput from '../../ui/MyColorInput.vue'
 import MyField from '../../ui/MyField.vue'
+import MyToggle from '../../ui/MyToggle.vue'
 
 const props = defineProps<{
     sprite: Skin['data']['sprites'][number]
@@ -21,7 +23,7 @@ const isScaleMode = useLocalStorage('preview.scaleMode', false)
 const elBack = ref<HTMLCanvasElement>()
 const elTop = ref<HTMLCanvasElement>()
 const elBuffer = ref<HTMLCanvasElement>()
-const { rect, canvasWidth, canvasHeight, draggingIndex, hoverIndex } = useCanvas(elTop)
+const { rect, canvasWidth, canvasHeight, draggingIndex, hoverIndex, resetRect } = useCanvas(elTop)
 
 const ctxBack = computed(() => elBack.value?.getContext('2d'))
 const ctxTop = computed(() => elTop.value?.getContext('2d'))
@@ -169,6 +171,12 @@ watchPostEffect(() => {
             />
         </div>
     </div>
+    <MyButton
+        class="mx-auto mt-4"
+        :icon="IconUndo"
+        text="Reset"
+        @click="resetRect()"
+    />
 
     <canvas ref="elBuffer" class="hidden" />
 </template>
