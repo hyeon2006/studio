@@ -2,6 +2,7 @@ import {
     useDevicePixelRatio,
     useElementSize,
     useKeyModifier,
+    useLocalStorage,
     useMouseInElement,
     useMousePressed,
 } from '@vueuse/core'
@@ -63,10 +64,13 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
         }
     })
 
-    watch([position, shift, draggingIndex], () => {
+    const isScaleMode = useLocalStorage('preview.scaleMode', false)
+    const isScaling = computed(() => shift.value || isScaleMode.value)
+
+    watch([position, isScaling, draggingIndex], () => {
         if (draggingIndex.value === undefined || !dragStartRect) return
 
-        if (shift.value) {
+        if (isScaling.value) {
             const cx = dragStartRect.reduce((sum, p) => sum + p[0], 0) / 4
             const cy = dragStartRect.reduce((sum, p) => sum + p[1], 0) / 4
 

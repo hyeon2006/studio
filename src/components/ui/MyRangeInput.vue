@@ -56,6 +56,23 @@ function onMove(e: MouseEvent) {
     set(e)
 }
 
+function onTouchDown(e: TouchEvent) {
+    setTouch(e)
+}
+
+function onTouchMove(e: TouchEvent) {
+    setTouch(e)
+}
+
+function setTouch(e: TouchEvent) {
+    if (!el.value) return
+    const rect = el.value.getBoundingClientRect()
+    const touch = e.touches[0]
+    if (!touch) return
+    const v = (touch.clientX - rect.left) / rect.width
+    value.value = v * (props.max - props.min) + props.min
+}
+
 function set(e: MouseEvent) {
     if (!el.value) return
 
@@ -83,6 +100,8 @@ function reset() {
             tabindex="-1"
             @mousedown="onDown"
             @mousemove="onMove"
+            @touchstart="onTouchDown"
+            @touchmove.prevent="onTouchMove"
         >
             <div class="h-full w-full bg-[rgba(0,0,0,0.25)] p-1">
                 <div ref="el" class="h-full w-full">

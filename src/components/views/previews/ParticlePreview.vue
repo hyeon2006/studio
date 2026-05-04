@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useLocalStorage } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { useParticlePreviewOptions } from '../../../composables/particle-preview'
 import IconRotate from '../../../icons/rotate.svg?component'
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 }>()
 
 const { backgroundColor, duration, loop } = useParticlePreviewOptions()
+const isScaleMode = useLocalStorage('preview.scaleMode', false)
 
 const elBackRef = ref<HTMLCanvasElement>()
 const elTopRef = ref<HTMLCanvasElement>()
@@ -37,6 +39,10 @@ watch(elTopRef, () => {
 </script>
 
 <template>
+    <MyField title="Scale Mode (Mobile)">
+        <MyToggle v-model="isScaleMode" :default-value="false" />
+    </MyField>
+
     <MyField title="Background Color">
         <MyColorInput
             v-model="backgroundColor"

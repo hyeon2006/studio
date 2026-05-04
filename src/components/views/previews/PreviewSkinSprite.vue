@@ -16,6 +16,7 @@ const props = defineProps<{
 }>()
 
 const backgroundColor = useLocalStorage('preview.skinSprite.backgroundColor', '#000')
+const isScaleMode = useLocalStorage('preview.scaleMode', false)
 
 const elBack = ref<HTMLCanvasElement>()
 const elTop = ref<HTMLCanvasElement>()
@@ -137,6 +138,10 @@ watchPostEffect(() => {
 </script>
 
 <template>
+    <MyField title="Scale Mode (Mobile)">
+        <MyToggle v-model="isScaleMode" :default-value="false" />
+    </MyField>
+
     <MyField title="Background Color">
         <MyColorInput
             v-model="backgroundColor"
