@@ -42,6 +42,7 @@ watchPostEffect(() => {
 
     const w = canvasWidth.value
     const h = canvasHeight.value
+    if (w === 0 || h === 0) return
     ctx.setTransform(w / 2, 0, 0, -h / 2, w / 2, h / 2)
     ctx.clearRect(-1, -1, 2, 2)
 
@@ -114,6 +115,7 @@ watchPostEffect(() => {
 
     const w = canvasWidth.value
     const h = canvasHeight.value
+    if (w === 0 || h === 0) return
     ctx.setTransform(w / 2, 0, 0, -h / 2, w / 2, h / 2)
     ctx.clearRect(-1, -1, 2, 2)
 

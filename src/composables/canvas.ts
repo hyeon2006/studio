@@ -5,7 +5,7 @@ import {
     useMouseInElement,
     useMousePressed,
 } from '@vueuse/core'
-import { computed, type Ref, ref, watch, watchEffect } from 'vue'
+import { computed, type Ref, ref, watch } from 'vue'
 import { type Point, type Rect } from '../core/utils'
 
 export function useCanvas(target: Ref<HTMLElement | undefined>) {
@@ -16,11 +16,11 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
     const shift = useKeyModifier('Shift')
 
     const position = computed<Point>(() => [
-        (elementX.value * 2) / width.value - 1,
-        1 - (elementY.value * 2) / height.value,
+        (elementX.value * 2) / (width.value || 1) - 1,
+        1 - (elementY.value * 2) / (height.value || 1),
     ])
-    const canvasWidth = computed(() => width.value * pixelRatio.value)
-    const canvasHeight = computed(() => height.value * pixelRatio.value)
+    const canvasWidth = computed(() => Math.round(width.value * pixelRatio.value))
+    const canvasHeight = computed(() => Math.round(height.value * pixelRatio.value))
 
     const rect = ref<Rect>([
         [-0.5, -0.5],
@@ -31,6 +31,7 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
 
     const draggingIndex = ref<number>()
     const hoverIndex = computed(() => {
+        if (!width.value) return undefined
         const [tx, ty] = position.value
 
         const [i, distance] = rect.value

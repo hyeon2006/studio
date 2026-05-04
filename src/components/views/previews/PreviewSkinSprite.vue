@@ -61,6 +61,7 @@ watchPostEffect(() => {
 
     const w = canvasWidth.value
     const h = canvasHeight.value
+    if (w === 0 || h === 0) return
     ctx.setTransform(w / 2, 0, 0, -h / 2, w / 2, h / 2)
     ctx.clearRect(-1, -1, 2, 2)
 
@@ -101,39 +102,36 @@ watchPostEffect(() => {
 
 watchPostEffect(() => {
     if (draggingIndex.value !== undefined) return
-
     const rect = rectTransformed.value
     const w = canvasWidth.value
     const h = canvasHeight.value
-
     const ctx = ctxBack.value
-    if (!ctx) return
-    ctx.clearRect(0, 0, w, h)
 
+    if (!ctx || w === 0 || h === 0) return
+
+    ctx.clearRect(0, 0, w, h)
     if (!imageBuffer.value) return
     const { buffer, width, height } = imageBuffer.value
-
     const imageData = ctx.getImageData(0, 0, w, h)
     const data = imageData.data
+
+    const imgWidth = imageData.width
 
     for (let i = 0; i < w; i++) {
         const x = ((i + 0.5) / w) * 2 - 1
         for (let j = 0; j < h; j++) {
             const y = (((j + 0.5) / w) * 2 - 1) * -1
-
             const [u, v] = inverseBilinear([x, y], rect)
             if (u < 0 || v < 0 || u > 1 || v > 1) continue
-
             const [r, g, b, a] = sample(buffer, width, height, u, v, props.interpolation)
 
-            const dIndex = (j * w + i) * 4
+            const dIndex = (j * imgWidth + i) * 4
             data[dIndex + 0] = r
             data[dIndex + 1] = g
             data[dIndex + 2] = b
             data[dIndex + 3] = a
         }
     }
-
     ctx.putImageData(imageData, 0, 0)
 })
 </script>
