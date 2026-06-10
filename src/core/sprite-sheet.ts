@@ -16,17 +16,24 @@ export async function tryCalculateLayout(sprite: SpriteLayout[]) {
 
     let size = 128
     while (size <= 4096) {
-        const layouts = calculateLayout(sprites, size)
-        if (layouts) {
+        const attempt = calculateLayout(sprites, size)
+        if (attempt) {
             return {
-                size,
-                layouts,
+                width: ceilPowerOfTwo(attempt.bounds.width),
+                height: ceilPowerOfTwo(attempt.bounds.height),
+                layouts: attempt.layouts,
             }
         }
 
         size *= 2
     }
     throw new Error('Maximum texture size (4096x4096) exceeded')
+}
+
+function ceilPowerOfTwo(value: number) {
+    let size = 1
+    while (size < value) size *= 2
+    return size
 }
 
 interface Sprite {
@@ -77,32 +84,45 @@ async function getSprites(sprite: SpriteLayout[]) {
     return sprites
 }
 
+interface Attempt {
+    layouts: Layout[]
+    bounds: { width: number; height: number }
+    key: string
+}
+
 function calculateLayout(sprites: Sprite[], size: number) {
-    const attempts: Layout[][] = []
+    let best: Attempt | undefined
+
+    const consider = (layouts: Layout[] | undefined) => {
+        if (!layouts) return
+
+        const attempt: Attempt = {
+            layouts,
+            bounds: getBounds(layouts),
+            key: getLayoutKey(layouts),
+        }
+        if (!best || compareAttempts(attempt, best) < 0) best = attempt
+    }
 
     for (const orderedSprites of orderSprites(sprites)) {
         for (const heuristic of ['shortSide', 'area', 'longSide', 'bottomLeft'] as const) {
-            const layouts = pack(orderedSprites, size, heuristic)
-            if (layouts) attempts.push(layouts)
+            consider(pack(orderedSprites, size, heuristic))
         }
 
         for (const heuristic of ['area', 'longSide', 'shortSide'] as const) {
-            const layouts = packDynamic(orderedSprites, size, heuristic)
-            if (layouts) attempts.push(layouts)
+            consider(packDynamic(orderedSprites, size, heuristic))
         }
 
         for (const direction of ['horizontal', 'vertical'] as const) {
-            const layouts = packShelves(orderedSprites, size, direction)
-            if (layouts) attempts.push(layouts)
+            consider(packShelves(orderedSprites, size, direction))
         }
 
         for (const mode of ['bottomLeft', 'minWaste'] as const) {
-            const layouts = packSkyline(orderedSprites, size, mode)
-            if (layouts) attempts.push(layouts)
+            consider(packSkyline(orderedSprites, size, mode))
         }
     }
 
-    return attempts.sort(compareLayouts)[0]
+    return best
 }
 
 function orderSprites(sprites: Sprite[]) {
@@ -615,16 +635,13 @@ function contains(a: Rect, b: Rect) {
     )
 }
 
-function compareLayouts(a: Layout[], b: Layout[]) {
-    const boundsA = getBounds(a)
-    const boundsB = getBounds(b)
-
+function compareAttempts(a: Attempt, b: Attempt) {
     return (
-        boundsA.width * boundsA.height - boundsB.width * boundsB.height ||
-        Math.max(boundsA.width, boundsA.height) - Math.max(boundsB.width, boundsB.height) ||
-        boundsA.height - boundsB.height ||
-        boundsA.width - boundsB.width ||
-        getLayoutKey(a).localeCompare(getLayoutKey(b))
+        a.bounds.width * a.bounds.height - b.bounds.width * b.bounds.height ||
+        Math.max(a.bounds.width, a.bounds.height) - Math.max(b.bounds.width, b.bounds.height) ||
+        a.bounds.height - b.bounds.height ||
+        a.bounds.width - b.bounds.width ||
+        a.key.localeCompare(b.key)
     )
 }
 

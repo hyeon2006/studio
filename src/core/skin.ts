@@ -185,7 +185,7 @@ function packSkin(
 
             const uniqueSpriteList = Array.from(uniqueSprites.values())
 
-            const { size, layouts } = await tryCalculateLayout(
+            const { width, height, layouts } = await tryCalculateLayout(
                 uniqueSpriteList.map((s) => ({
                     name: s.name,
                     texture: s.texture,
@@ -193,22 +193,25 @@ function packSkin(
                 })),
             )
 
-            skinData.width = size
-            skinData.height = size
+            skinData.width = width
+            skinData.height = height
 
-            canvas.width = size
-            canvas.height = size
+            canvas.width = width
+            canvas.height = height
 
             const ctx = canvas.getContext('2d')
             if (!ctx) throw new Error('Failed to obtain canvas context')
 
-            ctx.clearRect(0, 0, size, size)
+            ctx.clearRect(0, 0, width, height)
+
+            const layoutsByName = new Map(layouts.map((layout) => [layout.name, layout]))
+            const spritesByName = new Map(skin.data.sprites.map((s) => [s.name, s]))
 
             for (const s of skin.data.sprites) {
                 const uniqueName = spriteMapping.get(s.name)
                 if (!uniqueName) throw new Error('Unexpected missing sprite mapping')
 
-                const layout = layouts.find((l) => l.name === uniqueName)
+                const layout = layoutsByName.get(uniqueName)
                 if (!layout) throw new Error('Unexpected missing sprite layout')
 
                 skinData.sprites.push({
@@ -229,7 +232,7 @@ function packSkin(
             })
 
             for (const { name, x, y, w, h } of layouts) {
-                const sprite = skin.data.sprites.find((s) => s.name === name)
+                const sprite = spritesByName.get(name)
                 if (!sprite) throw new Error('Unexpected missing sprite')
 
                 await bakeSprite(sprite, x, y, w, h, ctx)

@@ -392,7 +392,7 @@ function packParticle(
 
             const uniqueSpriteList = Array.from(uniqueSprites.values())
 
-            const { size, layouts } = await tryCalculateLayout(
+            const { width, height, layouts } = await tryCalculateLayout(
                 uniqueSpriteList.map(({ id, padding, texture }) => ({
                     name: id,
                     padding,
@@ -400,24 +400,27 @@ function packParticle(
                 })),
             )
 
-            particleData.width = size
-            particleData.height = size
+            particleData.width = width
+            particleData.height = height
 
-            canvas.width = size
-            canvas.height = size
+            canvas.width = width
+            canvas.height = height
 
             const ctx = canvas.getContext('2d')
             if (!ctx) throw new Error('Failed to obtain canvas context')
 
-            ctx.clearRect(0, 0, size, size)
+            ctx.clearRect(0, 0, width, height)
 
             particleData.sprites = new Array(particle.data.sprites.length)
+
+            const layoutsByName = new Map(layouts.map((layout) => [layout.name, layout]))
+            const spritesById = new Map(particle.data.sprites.map((sprite) => [sprite.id, sprite]))
 
             for (const [spriteIndex, sprite] of particle.data.sprites.entries()) {
                 const uniqueId = spriteMapping.get(sprite.id)
                 if (!uniqueId) throw new Error('Unexpected missing sprite mapping')
 
-                const layout = layouts.find((l) => l.name === uniqueId)
+                const layout = layoutsByName.get(uniqueId)
                 if (!layout) throw new Error('Unexpected missing sprite layout')
 
                 particleData.sprites[spriteIndex] = {
@@ -429,7 +432,7 @@ function packParticle(
             }
 
             for (const { name, x, y, w, h } of layouts) {
-                const sprite = particle.data.sprites.find(({ id }) => id === name)
+                const sprite = spritesById.get(name)
                 if (!sprite) throw new Error('Unexpected missing sprite')
 
                 await bakeSprite(sprite, x, y, w, h, ctx)
