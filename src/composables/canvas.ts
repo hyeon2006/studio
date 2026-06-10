@@ -93,15 +93,14 @@ export function useCanvas(target: Ref<HTMLElement | undefined>) {
             const cx = dragStartRect.reduce((sum, p) => sum + p[0], 0) / 4
             const cy = dragStartRect.reduce((sum, p) => sum + p[1], 0) / 4
             const startP = dragStartRect[draggingIndex.value]
+            if (!startP) return
             const startDist = Math.hypot(startP[0] - cx, startP[1] - cy)
             const currentDist = Math.hypot(position.value[0] - cx, position.value[1] - cy)
             const scale = startDist === 0 ? 1 : currentDist / startDist
 
             for (let i = 0; i < 4; i++) {
-                rect.value[i] = [
-                    cx + (dragStartRect[i][0] - cx) * scale,
-                    cy + (dragStartRect[i][1] - cy) * scale,
-                ]
+                const p = dragStartRect[i]!
+                rect.value[i] = [cx + (p[0] - cx) * scale, cy + (p[1] - cy) * scale]
             }
         } else {
             rect.value[draggingIndex.value] = position.value

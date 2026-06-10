@@ -41,7 +41,9 @@ onMounted(async () => {
 
         emit('close', await finish())
     } catch (error) {
-        void show(ModalErrorCancel, { message: error })
+        void show(ModalErrorCancel, {
+            message: error instanceof Error ? error.message : String(error),
+        })
         emit('close')
     }
 })

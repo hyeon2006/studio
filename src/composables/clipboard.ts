@@ -302,12 +302,7 @@ export function useClipboard() {
         }
     }
 
-    async function paste(
-        type: string,
-        target: Record<string, unknown>,
-        root?: unknown,
-        options?: PasteOptions,
-    ) {
+    async function paste(type: string, target: object, root?: unknown, options?: PasteOptions) {
         const text = localStorage.getItem(CLIPBOARD_KEY)
         if (!text) {
             await show(ModalErrorCancel, {
