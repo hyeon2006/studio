@@ -1,3 +1,5 @@
+import { evictImageInfo } from './utils'
+
 const urls: string[] = []
 
 export function purge(whitelist: Set<string>) {
@@ -6,6 +8,7 @@ export function purge(whitelist: Set<string>) {
         if (whitelist.has(url)) continue
 
         URL.revokeObjectURL(url)
+        evictImageInfo(url)
         urls.splice(i, 1)
     }
 }

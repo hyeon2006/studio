@@ -39,7 +39,23 @@ export function unlerp(a: number, b: number, x: number) {
     return (x - a) / (b - a)
 }
 
+const imageInfoCache = new Map<string, Promise<ImageInfo>>()
+
 export function getImageInfo(src: string) {
+    let info = imageInfoCache.get(src)
+    if (!info) {
+        info = loadImageInfo(src)
+        info.catch(() => imageInfoCache.delete(src))
+        imageInfoCache.set(src, info)
+    }
+    return info
+}
+
+export function evictImageInfo(src: string) {
+    imageInfoCache.delete(src)
+}
+
+function loadImageInfo(src: string) {
     return new Promise<ImageInfo>((resolve, reject) => {
         if (!src) {
             reject(new Error('No source'))
