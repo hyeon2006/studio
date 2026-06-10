@@ -355,8 +355,45 @@ function packParticle(
                 }
             }
 
+            const uniqueSprites = new Map<
+                string,
+                {
+                    id: string
+                    texture: string
+                    padding: {
+                        left: boolean
+                        right: boolean
+                        top: boolean
+                        bottom: boolean
+                    }
+                }
+            >()
+            const spriteMapping = new Map<string, string>()
+            const textureHashCache = new Map<string, string>()
+            for (const sprite of particle.data.sprites) {
+                let hash = textureHashCache.get(sprite.texture)
+                if (!hash) {
+                    const result = await packRaw(sprite.texture)
+                    hash = result.hash
+                    textureHashCache.set(sprite.texture, hash)
+                }
+                const key = `${hash}:${Number(sprite.padding.left)}:${Number(sprite.padding.right)}:${Number(sprite.padding.top)}:${Number(sprite.padding.bottom)}`
+                let unique = uniqueSprites.get(key)
+                if (!unique) {
+                    unique = {
+                        id: sprite.id,
+                        texture: sprite.texture,
+                        padding: sprite.padding,
+                    }
+                    uniqueSprites.set(key, unique)
+                }
+                spriteMapping.set(sprite.id, unique.id)
+            }
+
+            const uniqueSpriteList = Array.from(uniqueSprites.values())
+
             const { size, layouts } = await tryCalculateLayout(
-                particle.data.sprites.map(({ id, padding, texture }) => ({
+                uniqueSpriteList.map(({ id, padding, texture }) => ({
                     name: id,
                     padding,
                     texture,
@@ -376,17 +413,24 @@ function packParticle(
 
             particleData.sprites = new Array(particle.data.sprites.length)
 
-            for (const { name, x, y, w, h } of layouts) {
-                const spriteIndex = particle.data.sprites.findIndex(({ id }) => id === name)
-                const sprite = particle.data.sprites[spriteIndex]
-                if (!sprite) throw new Error('Unexpected missing sprite')
+            for (const [spriteIndex, sprite] of particle.data.sprites.entries()) {
+                const uniqueId = spriteMapping.get(sprite.id)
+                if (!uniqueId) throw new Error('Unexpected missing sprite mapping')
+
+                const layout = layouts.find((l) => l.name === uniqueId)
+                if (!layout) throw new Error('Unexpected missing sprite layout')
 
                 particleData.sprites[spriteIndex] = {
-                    x: x + (sprite.padding.left ? 1 : 0),
-                    y: y + (sprite.padding.top ? 1 : 0),
-                    w,
-                    h,
+                    x: layout.x + (sprite.padding.left ? 1 : 0),
+                    y: layout.y + (sprite.padding.top ? 1 : 0),
+                    w: layout.w,
+                    h: layout.h,
                 }
+            }
+
+            for (const { name, x, y, w, h } of layouts) {
+                const sprite = particle.data.sprites.find(({ id }) => id === name)
+                if (!sprite) throw new Error('Unexpected missing sprite')
 
                 await bakeSprite(sprite, x, y, w, h, ctx)
             }
