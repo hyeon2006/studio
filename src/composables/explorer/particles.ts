@@ -87,12 +87,21 @@ export function addParticleItems(state: UseStateReturn, items: ExplorerItem[]) {
 
         if (!isOpened(['particles', name])) continue
 
+        const usedSpriteIds = new Set(
+            particle.data.effects.flatMap(({ groups }) =>
+                groups.flatMap(({ particles }) => particles.map(({ spriteId }) => spriteId)),
+            ),
+        )
+        const unusedCount = particle.data.sprites.filter(
+            ({ id }) => !usedSpriteIds.has(id),
+        ).length
+
         items.push({
             level: 2,
             path: ['particles', name, 'sprites'],
             hasChildren: true,
             icon: IconFolder,
-            title: `Sprites (${particle.data.sprites.length})`,
+            title: `Sprites (${particle.data.sprites.length}${unusedCount ? `, ${unusedCount} unused` : ''})`,
             onNew: () => {
                 onNewParticleSprite(state, name)
             },
@@ -115,7 +124,7 @@ export function addParticleItems(state: UseStateReturn, items: ExplorerItem[]) {
                     hasChildren: false,
                     icon: texture,
                     fallback: IconFileImage,
-                    title: `Sprite #${index + 1}`,
+                    title: `Sprite #${index + 1}${usedSpriteIds.has(spriteId) ? '' : ' (unused)'}`,
                     onDelete: () => {
                         onDeleteParticleSprite(state, name, spriteId)
                     },
