@@ -92,9 +92,7 @@ export function addParticleItems(state: UseStateReturn, items: ExplorerItem[]) {
                 groups.flatMap(({ particles }) => particles.map(({ spriteId }) => spriteId)),
             ),
         )
-        const unusedCount = particle.data.sprites.filter(
-            ({ id }) => !usedSpriteIds.has(id),
-        ).length
+        const unusedCount = particle.data.sprites.filter(({ id }) => !usedSpriteIds.has(id)).length
 
         items.push({
             level: 2,
