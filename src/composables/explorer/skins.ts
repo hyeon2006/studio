@@ -13,6 +13,7 @@ import IconPlus from '../../icons/plus-solid.svg?component'
 import { useClipboard } from '../clipboard'
 import { show } from '../modal'
 import { push, type UseStateReturn } from '../state'
+import { toast } from '../toast'
 import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 
 export function addSkinItems(state: UseStateReturn, items: ExplorerItem[]) {
@@ -149,7 +150,7 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
     const data = (await read('skin-sprites')) as { sprites: Skin['data']['sprites'] } | null
 
     if (!data || !Array.isArray(data.sprites)) {
-        alert('Clipboard does not contain skin sprites')
+        toast('Clipboard does not contain skin sprites', 'error')
         return
     }
 
@@ -177,9 +178,9 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
     })
 
     if (addedCount > 0) {
-        alert(`Pasted ${addedCount} sprites`)
+        toast(`Pasted ${addedCount} sprites`, 'success')
     } else {
-        alert('No new sprites pasted (or overwritten)')
+        toast('No new sprites pasted (or overwritten)')
     }
 }
 

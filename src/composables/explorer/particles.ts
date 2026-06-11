@@ -1,6 +1,5 @@
 import { ParticleEffectName } from '@sonolus/core'
 import { markRaw } from 'vue'
-import ModalErrorCancel from '../../components/modals/ModalErrorCancel.vue'
 import ModalName from '../../components/modals/ModalName.vue'
 import ModalSelectSprites from '../../components/modals/ModalSelectSprites.vue'
 import ModalTextInput from '../../components/modals/ModalTextInput.vue'
@@ -15,7 +14,6 @@ import {
     type Particle,
 } from '../../core/particle'
 import { clone, packRaw } from '../../core/utils'
-import IconCheck from '../../icons/check-solid.svg?component'
 import IconClone from '../../icons/clone-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'
 import IconFileImage from '../../icons/file-image-solid.svg?component'
@@ -26,6 +24,7 @@ import IconPlus from '../../icons/plus-solid.svg?component'
 import { useClipboard } from '../clipboard'
 import { show } from '../modal'
 import { push, type UseStateReturn } from '../state'
+import { toast } from '../toast'
 import { type ExplorerItem, isOpened, onClone, onDelete, onDeleteAll, onNew, onRename } from '.'
 
 async function getHash(url: string) {
@@ -307,9 +306,7 @@ async function onPasteParticleSprites({ project }: UseStateReturn, name: string)
     } | null
 
     if (!data || !Array.isArray(data.sprites)) {
-        await show(ModalErrorCancel, {
-            message: 'Clipboard does not contain particle sprites',
-        })
+        toast('Clipboard does not contain particle sprites', 'error')
         return
     }
 
@@ -344,19 +341,9 @@ async function onPasteParticleSprites({ project }: UseStateReturn, name: string)
     })
 
     if (addedCount > 0) {
-        await show(ModalErrorCancel, {
-            title: 'Success',
-            icon: markRaw(IconCheck),
-            message: `Pasted ${addedCount} sprites`,
-            text: 'OK',
-        })
+        toast(`Pasted ${addedCount} sprites`, 'success')
     } else {
-        await show(ModalErrorCancel, {
-            title: 'Info',
-            icon: markRaw(IconCheck),
-            message: 'No new sprites pasted (or overwritten)',
-            text: 'OK',
-        })
+        toast('No new sprites pasted (or overwritten)')
     }
 }
 
@@ -417,9 +404,7 @@ async function onPasteParticleEffects({ project }: UseStateReturn, name: string)
     } | null
 
     if (!data || !Array.isArray(data.effects)) {
-        await show(ModalErrorCancel, {
-            message: 'Clipboard does not contain particle effects',
-        })
+        toast('Clipboard does not contain particle effects', 'error')
         return
     }
 
@@ -446,12 +431,7 @@ async function onPasteParticleEffects({ project }: UseStateReturn, name: string)
         particles,
     })
 
-    await show(ModalErrorCancel, {
-        title: 'Success',
-        icon: markRaw(IconCheck),
-        message: `Pasted ${addedCount} effects`,
-        text: 'OK',
-    })
+    toast(`Pasted ${addedCount} effects`, 'success')
 }
 
 function onNewParticleEffectGroup({ project }: UseStateReturn, name: string, effectName: string) {
@@ -529,9 +509,7 @@ async function onPasteParticleEffectGroups(
     } | null
 
     if (!data || !Array.isArray(data.groups)) {
-        await show(ModalErrorCancel, {
-            message: 'Clipboard does not contain particle effect groups',
-        })
+        toast('Clipboard does not contain particle effect groups', 'error')
         return
     }
 
@@ -556,12 +534,7 @@ async function onPasteParticleEffectGroups(
         particles,
     })
 
-    await show(ModalErrorCancel, {
-        title: 'Success',
-        icon: markRaw(IconCheck),
-        message: `Pasted ${addedCount} groups`,
-        text: 'OK',
-    })
+    toast(`Pasted ${addedCount} groups`, 'success')
 }
 
 function onNewParticleEffectGroupParticle(
