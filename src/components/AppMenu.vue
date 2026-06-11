@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { saveAs } from 'file-saver'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { show, useModal } from '../composables/modal'
 import { push, redo, replace, undo, useState } from '../composables/state'
 import { newProject, type Project } from '../core/project'
+import IconBox from '../icons/box-solid.svg?component'
 import IconList from '../icons/list-solid.svg?component'
 import ModalConfirmation from './modals/ModalConfirmation.vue'
 import ModalPackProject from './modals/ModalPackProject.vue'
@@ -106,6 +107,13 @@ function selectFile(callback: (file: File) => Promise<void>) {
     el.value.click()
 }
 
+async function unpackAndReplace(file: File) {
+    const selectedProject: Project | undefined = await show(ModalUnpackPackage, file)
+    if (!selectedProject) return
+
+    replace(selectedProject)
+}
+
 async function onOpenProject() {
     if (isModified.value) {
         const result = await show(ModalConfirmation, {
@@ -114,12 +122,63 @@ async function onOpenProject() {
         if (!result) return
     }
 
-    selectFile(async (file) => {
-        const selectedProject = await show(ModalUnpackPackage, file)
-        if (!selectedProject) return
+    selectFile(unpackAndReplace)
+}
 
-        replace(selectedProject)
-    })
+const isDragOver = ref(false)
+let dragCounter = 0
+
+function hasFiles(e: DragEvent) {
+    return !!e.dataTransfer?.types.includes('Files')
+}
+
+function onDragEnter(e: DragEvent) {
+    if (!hasFiles(e) || modal.value) return
+
+    e.preventDefault()
+    dragCounter++
+    isDragOver.value = true
+}
+
+function onDragOver(e: DragEvent) {
+    if (!hasFiles(e) || modal.value) return
+
+    e.preventDefault()
+}
+
+function onDragLeave(e: DragEvent) {
+    if (!hasFiles(e)) return
+
+    dragCounter--
+    if (dragCounter <= 0) {
+        dragCounter = 0
+        isDragOver.value = false
+    }
+}
+
+function onDrop(e: DragEvent) {
+    if (!hasFiles(e)) return
+
+    e.preventDefault()
+    dragCounter = 0
+    isDragOver.value = false
+    if (modal.value) return
+
+    const file = e.dataTransfer?.files[0]
+    if (!file) return
+
+    void onDropFile(file)
+}
+
+async function onDropFile(file: File) {
+    if (isModified.value) {
+        const result = await show(ModalConfirmation, {
+            message: 'Opening a project will cause current project to be closed. Continue?',
+        })
+        if (!result) return
+    }
+
+    await unpackAndReplace(file)
 }
 
 function onImportProject() {
@@ -186,8 +245,15 @@ async function onSaveProject() {
     const result = await show(ModalPackProject, project.value)
     if (!result) return
 
-    saveAs(result, 'project.scp')
+    const title = project.value.title.trim().replace(/[\\/:*?"<>|]/g, '_')
+    saveAs(result, `${title || 'project'}.scp`)
 }
+
+watchEffect(() => {
+    const title = project.value.title.trim()
+    document.title =
+        (isModified.value ? '● ' : '') + (title ? `${title} - Sonolus Studio` : 'Sonolus Studio')
+})
 
 const openedIndex = ref<number>()
 
@@ -212,9 +278,17 @@ function onClick(item: { command: () => void }) {
 
 onMounted(() => {
     document.addEventListener('keydown', onKeyDown, { passive: false })
+    document.addEventListener('dragenter', onDragEnter)
+    document.addEventListener('dragover', onDragOver)
+    document.addEventListener('dragleave', onDragLeave)
+    document.addEventListener('drop', onDrop)
 })
 onUnmounted(() => {
     document.removeEventListener('keydown', onKeyDown)
+    document.removeEventListener('dragenter', onDragEnter)
+    document.removeEventListener('dragover', onDragOver)
+    document.removeEventListener('dragleave', onDragLeave)
+    document.removeEventListener('drop', onDrop)
 })
 
 const hotkeys = computed(() => {
@@ -234,7 +308,14 @@ const hotkeys = computed(() => {
 function onKeyDown(e: KeyboardEvent) {
     if (!e.ctrlKey) return
 
-    const command = hotkeys.value.get(e.key)
+    let key = e.key.toLowerCase()
+    if (e.shiftKey) {
+        // Ctrl+Shift+Z -> Redo
+        if (key !== 'z') return
+        key = 'y'
+    }
+
+    const command = hotkeys.value.get(key)
     if (command === undefined) return
 
     e.preventDefault()
@@ -246,7 +327,7 @@ function onKeyDown(e: KeyboardEvent) {
 
 <template>
     <div
-        class="bg-sonolus-ui-surface fixed top-0 z-40 flex h-8 w-full text-sm"
+        class="fixed top-0 z-40 flex h-8 w-full border-b border-white/10 bg-black/80 text-sm backdrop-blur-md"
         @click.self="close()"
     >
         <button
@@ -264,25 +345,33 @@ function onKeyDown(e: KeyboardEvent) {
             @mouseover.self="switchTo(i)"
         >
             {{ menu.title }}
-            <div
-                v-if="openedIndex === i"
-                class="bg-sonolus-ui-surface absolute top-8 -ml-3 flex min-w-[8rem] cursor-default flex-col py-1 sm:min-w-[12rem]"
+            <Transition
+                enter-from-class="-translate-y-1 opacity-0"
+                enter-to-class="translate-y-0 opacity-100"
+                enter-active-class="transition-all duration-150"
             >
-                <template v-for="(item, j) in menu.items" :key="j">
-                    <button
-                        v-if="item"
-                        class="transparent-clickable flex w-full flex-none items-center px-3 py-1 text-left"
-                        :disabled="!item.enabled"
-                        @click="onClick(item)"
-                    >
-                        <div class="flex-grow">{{ item.title }}</div>
-                        <div class="ml-8 hidden flex-shrink-0 text-xs sm:block">
-                            Ctrl + {{ item.key.toUpperCase() }}
-                        </div>
-                    </button>
-                    <hr v-else class="border-sonolus-ui-text-disabled my-1 w-full flex-none" />
-                </template>
-            </div>
+                <div
+                    v-if="openedIndex === i"
+                    class="absolute top-8 -ml-3 flex min-w-[8rem] cursor-default flex-col overflow-hidden rounded-b-lg border border-white/10 bg-black/95 py-1 shadow-xl shadow-black/50 backdrop-blur-xl sm:min-w-[12rem]"
+                >
+                    <template v-for="(item, j) in menu.items" :key="j">
+                        <button
+                            v-if="item"
+                            class="transparent-clickable flex w-full flex-none items-center px-3 py-1 text-left"
+                            :disabled="!item.enabled"
+                            @click="onClick(item)"
+                        >
+                            <div class="flex-grow">{{ item.title }}</div>
+                            <div
+                                class="text-sonolus-ui-text-disabled ml-8 hidden flex-shrink-0 text-xs sm:block"
+                            >
+                                Ctrl + {{ item.key.toUpperCase() }}
+                            </div>
+                        </button>
+                        <hr v-else class="my-1 w-full flex-none border-white/10" />
+                    </template>
+                </div>
+            </Transition>
         </button>
     </div>
     <div class="h-8" />
@@ -290,4 +379,16 @@ function onKeyDown(e: KeyboardEvent) {
     <div v-if="openedIndex !== undefined" class="fixed z-30 h-full w-full" @click="close()" />
 
     <input ref="el" class="hidden" type="file" @input="onFileInput()" />
+
+    <div
+        v-if="isDragOver"
+        class="bg-sonolus-main/80 pointer-events-none fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+    >
+        <div
+            class="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-white/30 px-16 py-12"
+        >
+            <IconBox class="h-10 w-10 fill-current opacity-75" />
+            <div class="text-xl">Drop package to open</div>
+        </div>
+    </div>
 </template>
