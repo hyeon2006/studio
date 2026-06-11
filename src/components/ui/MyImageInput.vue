@@ -61,7 +61,10 @@ function clear() {
 </script>
 
 <template>
-    <div class="relative flex h-8 items-center" :class="{ 'ring-sonolus-warning ring-1': isError }">
+    <div
+        class="relative flex h-8 items-center overflow-hidden rounded-md"
+        :class="{ 'ring-sonolus-warning ring-1': isError }"
+    >
         <template v-if="modelValue">
             <button
                 class="clickable flex h-full w-full flex-grow items-center px-2"

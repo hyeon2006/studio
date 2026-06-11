@@ -20,7 +20,7 @@ watchEffect(() => {
 </script>
 
 <template>
-    <button ref="el" class="clickable flex h-8 items-center px-2">
+    <button ref="el" class="clickable flex h-8 items-center rounded-md px-2">
         <component :is="icon" class="icon flex-none" />
         <div class="ml-2 flex-grow text-center">{{ text }}</div>
     </button>

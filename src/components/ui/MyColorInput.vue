@@ -70,7 +70,10 @@ function reset() {
 </script>
 
 <template>
-    <div class="relative flex h-8 items-center" :class="{ 'ring-sonolus-warning ring-1': isError }">
+    <div
+        class="relative flex h-8 items-center overflow-hidden rounded-md"
+        :class="{ 'ring-sonolus-warning ring-1': isError }"
+    >
         <input
             ref="el"
             v-model="value"

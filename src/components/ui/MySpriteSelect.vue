@@ -28,7 +28,7 @@ const selected = computed(() => props.options.find((o) => o.value === props.mode
 <template>
     <div ref="container" class="relative h-8 w-full">
         <button
-            class="clickable flex h-full w-full items-center justify-center gap-2 border-none px-8 py-0 text-center transition-colors hover:bg-sonolus-ui-button-highlight"
+            class="clickable hover:bg-sonolus-ui-button-highlight flex h-full w-full items-center justify-center gap-2 rounded-md border-none px-8 py-0 text-center transition-colors"
             @click="isOpen = !isOpen"
         >
             <template v-if="selected">
@@ -42,7 +42,7 @@ const selected = computed(() => props.options.find((o) => o.value === props.mode
 
         <div
             v-if="isOpen"
-            class="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto bg-sonolus-main shadow-lg"
+            class="bg-sonolus-main absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-white/10 shadow-lg"
         >
             <button
                 v-for="option in options"

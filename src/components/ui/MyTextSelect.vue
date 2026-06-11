@@ -39,7 +39,7 @@ function reset() {
 </script>
 
 <template>
-    <div class="flex h-8 items-center">
+    <div class="flex h-8 items-center overflow-hidden rounded-md">
         <div class="relative h-full w-full flex-grow">
             <select
                 ref="el"
@@ -49,7 +49,7 @@ function reset() {
                 <option
                     v-for="(option, description) in options"
                     :key="option"
-                    class="bg-sonolus-ui-surface"
+                    class="bg-sonolus-ui-surface text-center"
                     :value="option"
                 >
                     {{ description }}

@@ -34,7 +34,10 @@ function reset() {
 </script>
 
 <template>
-    <div class="flex h-8 items-center" :class="{ 'ring-sonolus-warning ring-1': isError }">
+    <div
+        class="flex h-8 items-center overflow-hidden rounded-md"
+        :class="{ 'ring-sonolus-warning ring-1': isError }"
+    >
         <div class="relative h-full w-full flex-grow">
             <select
                 ref="el"
@@ -44,7 +47,7 @@ function reset() {
                 <option
                     v-for="(option, description) in options"
                     :key="option"
-                    class="bg-sonolus-ui-surface"
+                    class="bg-sonolus-ui-surface text-center"
                     :value="option"
                 >
                     {{ description }}

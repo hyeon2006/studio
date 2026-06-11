@@ -88,7 +88,7 @@ function reset() {
 </script>
 
 <template>
-    <div class="relative flex h-8 items-center">
+    <div class="relative flex h-8 items-center overflow-hidden rounded-md">
         <div class="w-16 flex-shrink-0 text-center">
             {{ percentage ? `${(value * 100).toFixed(digits || 0)}%` : value.toFixed(digits || 0) }}
         </div>

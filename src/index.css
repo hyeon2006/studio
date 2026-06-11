@@ -18,9 +18,23 @@
     --color-sonolus-warning: rgba(241, 70, 104, 1);
 }
 
+html {
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+body {
+    background-image: linear-gradient(
+        160deg,
+        var(--color-sonolus-alternative-0) 0%,
+        var(--color-sonolus-main) 50%,
+        var(--color-sonolus-alternative-1) 100%
+    );
+    background-attachment: fixed;
+}
+
 .scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.125);
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
 .scrollbar::-webkit-scrollbar {
@@ -60,4 +74,42 @@
     @apply disabled:text-sonolus-ui-text-disabled;
     @apply disabled:cursor-not-allowed;
     @apply placeholder-sonolus-ui-text-disabled;
+}
+
+.clickable:focus-visible,
+.transparent-clickable:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.4);
+    outline-offset: -2px;
+}
+
+/* form fields indicate focus by lightening instead of an outline,
+   so the indicator follows the rounded group wrapper's shape */
+input.clickable:focus-visible,
+select.clickable:focus-visible,
+textarea.clickable:focus-visible {
+    outline: none;
+}
+
+input.clickable:focus,
+select.clickable:focus,
+textarea.clickable:focus {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: transparent;
+    box-shadow: none;
+}
+
+@keyframes modal-pop {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+}
+
+.modal-pop {
+    animation: modal-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }

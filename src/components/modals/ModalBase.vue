@@ -8,8 +8,10 @@ defineProps<{
 </script>
 
 <template>
-    <div class="bg-sonolus-ui-surface">
-        <div class="flex h-12 items-center px-2">
+    <div
+        class="bg-sonolus-ui-surface overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-black/50"
+    >
+        <div class="flex h-12 items-center bg-white/5 px-2">
             <component :is="icon" class="h-6 w-6 flex-none fill-current" />
             <div class="mr-6 w-full flex-grow text-center text-xl font-semibold">
                 {{ title }}
