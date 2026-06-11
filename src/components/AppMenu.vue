@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver'
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { show, useModal } from '../composables/modal'
 import { push, redo, replace, undo, useState } from '../composables/state'
+import { toast } from '../composables/toast'
 import { newProject, type Project } from '../core/project'
 import IconBox from '../icons/box-solid.svg?component'
 import IconList from '../icons/list-solid.svg?component'
@@ -54,6 +55,14 @@ const menus = computed(() => [
                     void onSaveProject()
                 },
             },
+            {
+                title: 'Save As',
+                enabled: true,
+                key: 'shift+s',
+                command: () => {
+                    void onSaveProjectAs()
+                },
+            },
         ],
     },
     {
@@ -84,6 +93,7 @@ async function onNewProject() {
     }
 
     replace(newProject())
+    fileHandle.value = undefined
 }
 
 const el = ref<HTMLInputElement>()
@@ -107,11 +117,12 @@ function selectFile(callback: (file: File) => Promise<void>) {
     el.value.click()
 }
 
-async function unpackAndReplace(file: File) {
+async function unpackAndReplace(file: File, handle?: FileSystemFileHandle) {
     const selectedProject: Project | undefined = await show(ModalUnpackPackage, file)
     if (!selectedProject) return
 
     replace(selectedProject)
+    fileHandle.value = handle
 }
 
 async function onOpenProject() {
@@ -120,6 +131,21 @@ async function onOpenProject() {
             message: 'Opening a project will cause current project to be closed. Continue?',
         })
         if (!result) return
+    }
+
+    if (window.showOpenFilePicker) {
+        try {
+            const [handle] = await window.showOpenFilePicker({ types: packageFileTypes })
+            if (!handle) return
+
+            await unpackAndReplace(await handle.getFile(), handle)
+        } catch (err) {
+            if ((err as Error).name === 'AbortError') return
+
+            console.error(err)
+            selectFile(unpackAndReplace)
+        }
+        return
     }
 
     selectFile(unpackAndReplace)
@@ -167,10 +193,13 @@ function onDrop(e: DragEvent) {
     const file = e.dataTransfer?.files[0]
     if (!file) return
 
-    void onDropFile(file)
+    // must be requested synchronously during the drop event
+    const handlePromise = e.dataTransfer?.items[0]?.getAsFileSystemHandle?.()
+
+    void onDropFile(file, handlePromise)
 }
 
-async function onDropFile(file: File) {
+async function onDropFile(file: File, handlePromise?: Promise<FileSystemHandle | null>) {
     if (isModified.value) {
         const result = await show(ModalConfirmation, {
             message: 'Opening a project will cause current project to be closed. Continue?',
@@ -178,7 +207,15 @@ async function onDropFile(file: File) {
         if (!result) return
     }
 
-    await unpackAndReplace(file)
+    let handle: FileSystemFileHandle | undefined
+    try {
+        const dropped = await handlePromise
+        if (dropped?.kind === 'file') handle = dropped as FileSystemFileHandle
+    } catch (err) {
+        console.error(err)
+    }
+
+    await unpackAndReplace(file, handle)
 }
 
 function onImportProject() {
@@ -241,12 +278,73 @@ function onImportProject() {
     })
 }
 
+const fileHandle = ref<FileSystemFileHandle>()
+
+const packageFileTypes = [
+    {
+        description: 'Sonolus Collection Package',
+        accept: { 'application/octet-stream': ['.scp'] },
+    },
+]
+
+function packageFileName() {
+    const title = project.value.title.trim().replace(/[\\/:*?"<>|]/g, '_')
+    return `${title || 'project'}.scp`
+}
+
+async function writeToHandle(handle: FileSystemFileHandle, blob: Blob) {
+    const writable = await handle.createWritable()
+    await writable.write(blob)
+    await writable.close()
+
+    toast(`Saved to ${handle.name}`, 'success')
+}
+
+async function saveBlobAs(blob: Blob) {
+    if (!window.showSaveFilePicker) {
+        saveAs(blob, packageFileName())
+        return
+    }
+
+    try {
+        const handle = await window.showSaveFilePicker({
+            suggestedName: packageFileName(),
+            types: packageFileTypes,
+        })
+
+        await writeToHandle(handle, blob)
+        fileHandle.value = handle
+    } catch (err) {
+        if ((err as Error).name === 'AbortError') return
+
+        console.error(err)
+        saveAs(blob, packageFileName())
+    }
+}
+
 async function onSaveProject() {
-    const result = await show(ModalPackProject, project.value)
+    const result: Blob | undefined = await show(ModalPackProject, project.value)
     if (!result) return
 
-    const title = project.value.title.trim().replace(/[\\/:*?"<>|]/g, '_')
-    saveAs(result, `${title || 'project'}.scp`)
+    if (fileHandle.value) {
+        try {
+            await writeToHandle(fileHandle.value, result)
+            return
+        } catch (err) {
+            if ((err as Error).name === 'AbortError') return
+
+            console.error(err)
+        }
+    }
+
+    await saveBlobAs(result)
+}
+
+async function onSaveProjectAs() {
+    const result: Blob | undefined = await show(ModalPackProject, project.value)
+    if (!result) return
+
+    await saveBlobAs(result)
 }
 
 watchEffect(() => {
@@ -305,14 +403,19 @@ const hotkeys = computed(() => {
     return output
 })
 
+function formatHotkey(key: string) {
+    return ['ctrl', ...key.split('+')]
+        .map((part) => part[0]!.toUpperCase() + part.slice(1))
+        .join(' + ')
+}
+
 function onKeyDown(e: KeyboardEvent) {
     if (!e.ctrlKey) return
 
     let key = e.key.toLowerCase()
     if (e.shiftKey) {
         // Ctrl+Shift+Z -> Redo
-        if (key !== 'z') return
-        key = 'y'
+        key = key === 'z' ? 'y' : `shift+${key}`
     }
 
     const command = hotkeys.value.get(key)
@@ -365,7 +468,7 @@ function onKeyDown(e: KeyboardEvent) {
                             <div
                                 class="text-sonolus-ui-text-disabled ml-8 hidden flex-shrink-0 text-xs sm:block"
                             >
-                                Ctrl + {{ item.key.toUpperCase() }}
+                                {{ formatHotkey(item.key) }}
                             </div>
                         </button>
                         <hr v-else class="my-1 w-full flex-none border-white/10" />
