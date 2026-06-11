@@ -30,9 +30,15 @@ watchEffect(() => {
     el.value.focus()
 })
 
+const isFocused = ref(false)
+const draft = ref('')
+
 const value = computed({
-    get: () => props.modelValue.toString(),
+    get: () => (isFocused.value ? draft.value : props.modelValue.toString()),
     set: (value) => {
+        draft.value = value
+        if (value === '') return
+
         emit('update:modelValue', +value || 0)
     },
 })
@@ -44,6 +50,22 @@ function selectAll() {
     el.value.select()
 }
 
+function onFocus() {
+    draft.value = props.modelValue.toString()
+    isFocused.value = true
+    selectAll()
+}
+
+function onBlur() {
+    isFocused.value = false
+    if (draft.value === '') emit('update:modelValue', 0)
+}
+
+function onEnter() {
+    if (isFocused.value && draft.value === '') emit('update:modelValue', 0)
+    emit('enter')
+}
+
 function reset() {
     if (props.defaultValue === undefined) return
     value.value = props.defaultValue.toFixed(4)
@@ -51,7 +73,10 @@ function reset() {
 </script>
 
 <template>
-    <div class="relative flex h-8 items-center" :class="{ 'ring-sonolus-warning ring-1': isError }">
+    <div
+        class="relative flex h-8 items-center overflow-hidden rounded-md"
+        :class="{ 'ring-sonolus-warning ring-1': isError }"
+    >
         <input
             ref="el"
             v-model="value"
@@ -59,8 +84,9 @@ function reset() {
             inputmode="decimal"
             class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
             :placeholder="placeholder"
-            @focus="selectAll()"
-            @keydown.enter="$emit('enter')"
+            @focus="onFocus()"
+            @blur="onBlur()"
+            @keydown.enter="onEnter()"
             @keydown.escape="$emit('escape')"
         />
         <IconKeyboard class="icon pointer-events-none absolute top-2 left-2" />

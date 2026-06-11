@@ -14,9 +14,15 @@ const emit = defineEmits<{
 
 const el = ref<HTMLInputElement>()
 
+const isFocused = ref(false)
+const draft = ref('')
+
 const value = computed({
-    get: () => props.modelValue.toString(),
+    get: () => (isFocused.value ? draft.value : props.modelValue.toString()),
     set: (value) => {
+        draft.value = value
+        if (value === '') return
+
         emit('update:modelValue', +value || 0)
     },
 })
@@ -24,6 +30,22 @@ const value = computed({
 function selectAll() {
     if (!el.value) return
     el.value.select()
+}
+
+function onFocus() {
+    draft.value = props.modelValue.toString()
+    isFocused.value = true
+    selectAll()
+}
+
+function onBlur() {
+    isFocused.value = false
+    if (draft.value === '') emit('update:modelValue', 0)
+}
+
+function onEnter() {
+    if (isFocused.value && draft.value === '') emit('update:modelValue', 0)
+    emit('enter')
 }
 </script>
 
@@ -35,8 +57,9 @@ function selectAll() {
         inputmode="decimal"
         class="clickable h-8 border-none px-2 text-center"
         :placeholder="placeholder"
-        @focus="selectAll()"
-        @keydown.enter="$emit('enter')"
+        @focus="onFocus()"
+        @blur="onBlur()"
+        @keydown.enter="onEnter()"
         @keydown.escape="$emit('escape')"
     />
 </template>
