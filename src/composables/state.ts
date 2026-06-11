@@ -1,5 +1,5 @@
 import { computed, reactive, toRef, watchEffect } from 'vue'
-import { addProjectToWhitelist, newProject, type Project } from '../core/project'
+import { addProjectToWhitelist, isViewValid, newProject, type Project } from '../core/project'
 import { purge } from '../core/storage'
 
 export type UseStateReturn = ReturnType<typeof useState>
@@ -72,7 +72,7 @@ export function push(project: Project, updater = '') {
         state.index = state.history.length - 1
     }
 
-    updateView()
+    state.view = project.view
     state.updater = updater
     state.updaterTime = now
 }
@@ -89,8 +89,10 @@ export function replace(project: Project) {
 export function undo() {
     if (state.index <= 0) return
 
+    // navigate to where the change being undone was made
+    const targetView = state.history[state.index]!.view
     state.index--
-    updateView()
+    focusView(targetView)
     clearUpdater()
 }
 
@@ -98,10 +100,16 @@ export function redo() {
     if (state.index >= state.history.length - 1) return
 
     state.index++
-    updateView()
+    focusView(state.history[state.index]!.view)
     clearUpdater()
 }
 
-function updateView() {
-    state.view = state.history[state.index]!.view
+function focusView(targetView: string[]) {
+    const project = state.history[state.index]!
+
+    if (isViewValid(project, targetView)) {
+        state.view = targetView
+    } else if (!isViewValid(project, state.view)) {
+        state.view = []
+    }
 }

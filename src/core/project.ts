@@ -16,9 +16,24 @@ import {
     packBackgrounds,
     unpackBackgrounds,
 } from './background'
-import { addEffectToWhitelist, type Effect, packEffects, unpackEffects } from './effect'
-import { addParticleToWhitelist, type Particle, packParticles, unpackParticles } from './particle'
-import { addSkinToWhitelist, packSkins, type Skin, unpackSkins } from './skin'
+import {
+    addEffectToWhitelist,
+    type Effect,
+    hasEffectClip,
+    packEffects,
+    unpackEffects,
+} from './effect'
+import {
+    addParticleToWhitelist,
+    hasParticleEffect,
+    hasParticleEffectGroup,
+    hasParticleEffectGroupParticle,
+    hasParticleSprite,
+    type Particle,
+    packParticles,
+    unpackParticles,
+} from './particle'
+import { addSkinToWhitelist, hasSkinSprite, packSkins, type Skin, unpackSkins } from './skin'
 import { load } from './storage'
 import { packRaw } from './utils'
 
@@ -47,6 +62,65 @@ export function newProject(): Project {
         backgrounds: new Map(),
         effects: new Map(),
         particles: new Map(),
+    }
+}
+
+export function isViewValid(project: Project, view: string[]) {
+    switch (view[0]) {
+        case 'info': {
+            return true
+        }
+        case 'skins': {
+            const data = project.skins.get(view[1]!)
+            if (!data) return false
+
+            switch (view.length) {
+                case 2:
+                    return true
+                case 4:
+                    return hasSkinSprite(data, view[3]!)
+                default:
+                    return false
+            }
+        }
+        case 'backgrounds': {
+            return project.backgrounds.has(view[1]!)
+        }
+        case 'effects': {
+            const data = project.effects.get(view[1]!)
+            if (!data) return false
+
+            switch (view.length) {
+                case 2:
+                    return true
+                case 4:
+                    return hasEffectClip(data, view[3]!)
+                default:
+                    return false
+            }
+        }
+        case 'particles': {
+            const data = project.particles.get(view[1]!)
+            if (!data) return false
+
+            switch (view.length) {
+                case 2:
+                    return true
+                case 4:
+                    return view[2] === 'sprites'
+                        ? hasParticleSprite(data, view[3]!)
+                        : hasParticleEffect(data, view[3]!)
+                case 6:
+                    return hasParticleEffectGroup(data, view[3]!, +view[5]!)
+                case 8:
+                    return hasParticleEffectGroupParticle(data, view[3]!, +view[5]!, +view[7]!)
+                default:
+                    return false
+            }
+        }
+        default: {
+            return false
+        }
     }
 }
 
