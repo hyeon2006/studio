@@ -13,6 +13,7 @@ import MyImageInput from '../ui/MyImageInput.vue'
 import MyNumberInput from '../ui/MyNumberInput.vue'
 import MyRangeInput from '../ui/MyRangeInput.vue'
 import MySection from '../ui/MySection.vue'
+import MyTagsInput from '../ui/MyTagsInput.vue'
 import MyTextArea from '../ui/MyTextArea.vue'
 import MyTextInput from '../ui/MyTextInput.vue'
 import MyTextSelect from '../ui/MyTextSelect.vue'
@@ -60,6 +61,9 @@ const useNaturalAspectRatio = computed({
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter background author..." validate />
+        </MyField>
+        <MyField title="Tags">
+            <MyTagsInput v-model="v.tags" />
         </MyField>
         <MyField title="Description">
             <MyTextArea

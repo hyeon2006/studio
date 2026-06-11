@@ -12,6 +12,7 @@ import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { allZero as allZeroProperty, type PropertyExpression } from './property-expression'
 import { bakeSprite, tryCalculateLayout } from './sprite-sheet'
 import { load } from './storage'
+import { type ProjectTag, packTags, unpackTags } from './tag'
 import { allZero as allZeroTransform, type TransformExpression } from './transform-expression'
 import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
 
@@ -51,6 +52,7 @@ export interface Particle {
     title: string
     subtitle: string
     author: string
+    tags: ProjectTag[]
     description: string
     thumbnail: string
     data: {
@@ -94,6 +96,7 @@ export function newParticle(): Particle {
         title: '',
         subtitle: '',
         author: '',
+        tags: [],
         description: '',
         thumbnail: '',
         data: {
@@ -248,7 +251,7 @@ function packParticle(
         title: particle.title,
         subtitle: particle.subtitle,
         author: particle.author,
-        tags: [],
+        tags: packTags(particle.tags),
         thumbnail: emptySrl(),
         data: emptySrl(),
         texture: emptySrl(),
@@ -507,6 +510,7 @@ function unpackParticle({ project, tasks, canvas, getRaw, getJson }: UnpackProce
             item.title = details.item.title
             item.subtitle = details.item.subtitle
             item.author = details.item.author
+            item.tags = unpackTags(details.item.tags)
             item.description = details.description ?? ''
 
             let img: HTMLImageElement | undefined

@@ -9,6 +9,7 @@ import { formatNameKey } from './names'
 import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { bakeSprite, tryCalculateLayout } from './sprite-sheet'
 import { load } from './storage'
+import { type ProjectTag, packTags, unpackTags } from './tag'
 import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
 
 const allZero = { x1: 0, x2: 0, x3: 0, x4: 0, y1: 0, y2: 0, y3: 0, y4: 0 }
@@ -17,6 +18,7 @@ export interface Skin {
     title: string
     subtitle: string
     author: string
+    tags: ProjectTag[]
     description: string
     thumbnail: string
     data: {
@@ -42,6 +44,7 @@ export function newSkin(): Skin {
         title: '',
         subtitle: '',
         author: '',
+        tags: [],
         description: '',
         thumbnail: '',
         data: {
@@ -110,7 +113,7 @@ function packSkin(
         title: skin.title,
         subtitle: skin.subtitle,
         author: skin.author,
-        tags: [],
+        tags: packTags(skin.tags),
         thumbnail: emptySrl(),
         data: emptySrl(),
         texture: emptySrl(),
@@ -304,6 +307,7 @@ function unpackSkin({ project, tasks, canvas, getRaw, getJson }: UnpackProcess, 
             item.title = details.item.title
             item.subtitle = details.item.subtitle
             item.author = details.item.author
+            item.tags = unpackTags(details.item.tags)
             item.description = details.description ?? ''
 
             let img: HTMLImageElement | undefined

@@ -7,12 +7,14 @@ import {
 } from '@sonolus/core'
 import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { load } from './storage'
+import { type ProjectTag, packTags, unpackTags } from './tag'
 import { emptySrl, packJson, packRaw, unpackJson } from './utils'
 
 export interface Background {
     title: string
     subtitle: string
     author: string
+    tags: ProjectTag[]
     description: string
     thumbnail: string
     image: string
@@ -25,6 +27,7 @@ export function newBackground(): Background {
         title: '',
         subtitle: '',
         author: '',
+        tags: [],
         description: '',
         thumbnail: '',
         image: '',
@@ -62,7 +65,7 @@ function packBackground(
         title: background.title,
         subtitle: background.subtitle,
         author: background.author,
-        tags: [],
+        tags: packTags(background.tags),
         thumbnail: emptySrl(),
         image: emptySrl(),
         data: emptySrl(),
@@ -163,6 +166,7 @@ function unpackBackground({ project, tasks, getRaw, getJson }: UnpackProcess, na
             item.title = details.item.title
             item.subtitle = details.item.subtitle
             item.author = details.item.author
+            item.tags = unpackTags(details.item.tags)
             item.description = details.description ?? ''
 
             tasks.push({

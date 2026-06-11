@@ -8,6 +8,7 @@ import MyButton from '../ui/MyButton.vue'
 import MyField from '../ui/MyField.vue'
 import MyImageInput from '../ui/MyImageInput.vue'
 import MySection from '../ui/MySection.vue'
+import MyTagsInput from '../ui/MyTagsInput.vue'
 import MyTextArea from '../ui/MyTextArea.vue'
 import MyTextInput from '../ui/MyTextInput.vue'
 
@@ -37,6 +38,9 @@ const v = useView(props, 'effects')
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter SFX author..." validate />
+        </MyField>
+        <MyField title="Tags">
+            <MyTagsInput v-model="v.tags" />
         </MyField>
         <MyField title="Description">
             <MyTextArea v-model="v.description" placeholder="Enter SFX description..." validate />

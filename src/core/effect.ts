@@ -9,12 +9,14 @@ import JSZip from 'jszip'
 import { formatNameKey } from './names'
 import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { load } from './storage'
+import { type ProjectTag, packTags, unpackTags } from './tag'
 import { emptySrl, packArrayBuffer, packJson, packRaw, unpackJson } from './utils'
 
 export interface Effect {
     title: string
     subtitle: string
     author: string
+    tags: ProjectTag[]
     description: string
     thumbnail: string
     data: {
@@ -30,6 +32,7 @@ export function newEffect(): Effect {
         title: '',
         subtitle: '',
         author: '',
+        tags: [],
         description: '',
         thumbnail: '',
         data: {
@@ -81,7 +84,7 @@ function packEffect(
         title: effect.title,
         subtitle: effect.subtitle,
         author: effect.author,
-        tags: [],
+        tags: packTags(effect.tags),
         thumbnail: emptySrl(),
         data: emptySrl(),
         audio: emptySrl(),
@@ -192,6 +195,7 @@ function unpackEffect({ project, tasks, getRaw, getJson }: UnpackProcess, name: 
             item.title = details.item.title
             item.subtitle = details.item.subtitle
             item.author = details.item.author
+            item.tags = unpackTags(details.item.tags)
             item.description = details.description ?? ''
 
             let effectAudio: JSZip
