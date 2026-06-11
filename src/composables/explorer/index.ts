@@ -1,4 +1,4 @@
-import { type Component, computed, markRaw, reactive } from 'vue'
+import { type Component, computed, markRaw, reactive, ref } from 'vue'
 import ModalTextInput from '../../components/modals/ModalTextInput.vue'
 import { type ProjectItemTypeOf } from '../../core/project'
 import { clone } from '../../core/utils'
@@ -32,6 +32,8 @@ export interface ExplorerItem {
 
 const openedPaths = reactive(new Map<string, true>())
 
+export const searchQuery = ref('')
+
 export function useExplorer() {
     const state = useState()
 
@@ -51,7 +53,19 @@ export function useExplorer() {
         addEffectItems(state, items)
         addParticleItems(state, items)
 
-        return items
+        const query = searchQuery.value.trim().toLowerCase()
+        if (!query) return items
+
+        const keep = new Set<string>()
+        for (const item of items) {
+            if (!item.title.toLowerCase().includes(query)) continue
+
+            for (let i = 1; i <= item.path.length; i++) {
+                keep.add(toKey(item.path.slice(0, i)))
+            }
+        }
+
+        return items.filter((item) => keep.has(toKey(item.path)))
     })
 
     return {
@@ -64,6 +78,8 @@ export function toKey(path: string[]) {
 }
 
 export function isOpened(path: string[]) {
+    if (searchQuery.value.trim()) return true
+
     const key = path.join('/')
     return openedPaths.has(key)
 }
