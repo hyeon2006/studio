@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { show } from '../../composables/modal'
 import { type Project, packProject } from '../../core/project'
 import IconSpinner from '../../icons/spinner-solid.svg?component'
@@ -21,6 +21,8 @@ const description = ref<string>()
 const completed = ref(0)
 const total = ref(0)
 const aborted = ref(false)
+const progress = computed(() => (total.value ? Math.min(completed.value / total.value, 1) : 0))
+const progressPercentage = computed(() => Math.round(progress.value * 100))
 
 onMounted(async () => {
     while (!el.value) {
@@ -28,23 +30,22 @@ onMounted(async () => {
     }
 
     const { tasks, finish } = packProject(props.data, el.value)
-    total.value = tasks.length
 
     try {
-        for (const [i, task] of tasks.entries()) {
-            completed.value = i
-            description.value = `${task.description} (${i + 1}/${tasks.length})`
-            await nextTick()
-            await task.execute()
+        await runTasks(tasks)
+        if (aborted.value) return
 
-            if (aborted.value) return
-            completed.value = i + 1
-        }
+        total.value = completed.value + 1
+        description.value = `Finalizing package... (${completed.value + 1}/${total.value})`
+        await nextTick()
+        const result = await finish()
+        if (aborted.value) return
 
+        completed.value = total.value
         description.value = 'Completed.'
         await nextTick()
 
-        emit('close', await finish())
+        emit('close', result)
     } catch (error) {
         void show(ModalErrorCancel, {
             message: error instanceof Error ? error.message : String(error),
@@ -54,6 +55,27 @@ onMounted(async () => {
 })
 
 onUnmounted(() => (aborted.value = true))
+
+async function runTasks(tasks: { description: string; execute: () => void | Promise<void> }[]) {
+    let index = 0
+
+    while (index < tasks.length) {
+        const task = tasks[index]
+        if (!task) break
+
+        total.value = tasks.length
+        completed.value = index
+        description.value = `${task.description} (${index + 1}/${total.value})`
+        await nextTick()
+        await task.execute()
+
+        if (aborted.value) return
+
+        index++
+        total.value = tasks.length
+        completed.value = index
+    }
+}
 
 function cancel() {
     aborted.value = true
@@ -66,9 +88,12 @@ function cancel() {
         <div aria-live="polite">{{ description }}</div>
         <div class="mt-4 h-2 overflow-hidden rounded-full bg-black/25">
             <div
-                class="bg-sonolus-success h-full transition-all duration-200"
-                :style="{ width: total ? `${(completed / total) * 100}%` : '0%' }"
+                class="bg-sonolus-success h-full"
+                :style="{ width: `${progressPercentage}%` }"
             />
+        </div>
+        <div class="text-sonolus-ui-text-soften mt-1 text-right text-xs">
+            {{ progressPercentage }}%
         </div>
 
         <canvas ref="el" class="hidden" />
