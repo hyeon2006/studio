@@ -13,6 +13,12 @@ import { type ProjectTag, packTags, unpackTags } from './tag'
 import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
 
 const allZero = { x1: 0, x2: 0, x3: 0, x4: 0, y1: 0, y2: 0, y3: 0, y4: 0 }
+const skinSpriteNameKeys = new Map<string, string>()
+for (const [key, value] of Object.entries(SkinSpriteName)) {
+    if (!skinSpriteNameKeys.has(value)) {
+        skinSpriteNameKeys.set(value, key)
+    }
+}
 
 export interface Skin {
     title: string
@@ -82,10 +88,10 @@ export function hasSkinSprite(skin: Skin, name: string) {
 }
 
 export function formatSkinSpriteName(name: string) {
-    const kvp = Object.entries(SkinSpriteName).find(([, v]) => v === name)
-    if (!kvp) return `Custom: ${name}`
+    const key = skinSpriteNameKeys.get(name)
+    if (!key) return `Custom: ${name}`
 
-    return formatNameKey(kvp[0])
+    return formatNameKey(key)
 }
 
 export function addSkinToWhitelist(skin: Skin, whitelist: Set<string>) {

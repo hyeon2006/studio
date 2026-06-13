@@ -97,7 +97,14 @@ function hasSpriteId(data: unknown): data is HasSpriteId {
 
 function collectDependencies(data: unknown, rootSprites: Sprite[]): Sprite[] {
     const dependencies = new Map<string, Sprite>()
+    const spritesById = new Map<string, Sprite>()
     const visited = new Set<unknown>()
+
+    for (const sprite of rootSprites) {
+        if (!spritesById.has(sprite.id)) {
+            spritesById.set(sprite.id, sprite)
+        }
+    }
 
     function traverse(obj: unknown) {
         if (typeof obj !== 'object' || obj === null) return
@@ -105,7 +112,7 @@ function collectDependencies(data: unknown, rootSprites: Sprite[]): Sprite[] {
         visited.add(obj)
 
         if (hasSpriteId(obj)) {
-            const sprite = rootSprites.find((s) => s.id === obj.spriteId)
+            const sprite = spritesById.get(obj.spriteId)
             if (sprite) {
                 dependencies.set(sprite.id, sprite)
             }

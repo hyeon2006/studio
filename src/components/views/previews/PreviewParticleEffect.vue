@@ -113,6 +113,13 @@ watchPostEffect(() => {
 
 const imageInfos = computedAsync(async () => {
     const result: Record<string, ImageInfo> = {}
+    const spritesById = new Map<string, Particle['data']['sprites'][number]>()
+
+    for (const sprite of props.sprites) {
+        if (!spritesById.has(sprite.id)) {
+            spritesById.set(sprite.id, sprite)
+        }
+    }
 
     for (const spriteId of new Set(
         props.effect.groups.flatMap((group) =>
@@ -120,9 +127,10 @@ const imageInfos = computedAsync(async () => {
         ),
     )) {
         try {
-            result[spriteId] = await getImageInfo(
-                props.sprites.find(({ id }) => id === spriteId)!.texture,
-            )
+            const sprite = spritesById.get(spriteId)
+            if (!sprite) continue
+
+            result[spriteId] = await getImageInfo(sprite.texture)
         } catch {
             // ignore
         }

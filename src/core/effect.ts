@@ -27,6 +27,13 @@ export interface Effect {
     }
 }
 
+const effectClipNameKeys = new Map<string, string>()
+for (const [key, value] of Object.entries(EffectClipName)) {
+    if (!effectClipNameKeys.has(value)) {
+        effectClipNameKeys.set(value, key)
+    }
+}
+
 export function newEffect(): Effect {
     return {
         title: '',
@@ -53,10 +60,10 @@ export function hasEffectClip(effect: Effect, name: string) {
 }
 
 export function formatEffectClipName(name: string) {
-    const kvp = Object.entries(EffectClipName).find(([, v]) => v === name)
-    if (!kvp) return `Custom: ${name}`
+    const key = effectClipNameKeys.get(name)
+    if (!key) return `Custom: ${name}`
 
-    return formatNameKey(kvp[0])
+    return formatNameKey(key)
 }
 
 export function addEffectToWhitelist(effect: Effect, whitelist: Set<string>) {

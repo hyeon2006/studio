@@ -288,8 +288,8 @@ async function onCopyParticleSprites({ project }: UseStateReturn, name: string) 
 
     if (!selectedNames || selectedNames.length === 0) return
 
-    const selectedIndexes = selectedNames.map((s) => parseInt(s.slice(8)) - 1)
-    const spritesToCopy = particle.data.sprites.filter((_, i) => selectedIndexes.includes(i))
+    const selectedIndexes = new Set(selectedNames.map((s) => parseInt(s.slice(8)) - 1))
+    const spritesToCopy = particle.data.sprites.filter((_, i) => selectedIndexes.has(i))
 
     const { copy } = useClipboard()
     await copy('particle-sprites', { sprites: spritesToCopy })
@@ -387,7 +387,8 @@ async function onCopyParticleEffects({ project }: UseStateReturn, name: string) 
 
     if (!selectedNames || selectedNames.length === 0) return
 
-    const effectsToCopy = particle.data.effects.filter((e) => selectedNames.includes(e.name))
+    const selectedNameSet = new Set(selectedNames)
+    const effectsToCopy = particle.data.effects.filter((e) => selectedNameSet.has(e.name))
 
     const { copy } = useClipboard()
     await copy('particle-effects', { effects: effectsToCopy }, particle)

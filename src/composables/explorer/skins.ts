@@ -136,7 +136,8 @@ async function onCopySkinSprites({ project }: UseStateReturn, name: string) {
 
     if (!selectedNames || selectedNames.length === 0) return
 
-    const spritesToCopy = skin.data.sprites.filter((s) => selectedNames.includes(s.name))
+    const selectedNameSet = new Set(selectedNames)
+    const spritesToCopy = skin.data.sprites.filter((s) => selectedNameSet.has(s.name))
 
     const { copy } = useClipboard()
     await copy('skin-sprites', { sprites: spritesToCopy })

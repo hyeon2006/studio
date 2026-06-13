@@ -91,6 +91,13 @@ export interface Particle {
 }
 export type Transform = Record<`${'x' | 'y'}${1 | 2 | 3 | 4}`, TransformExpression>
 
+const particleEffectNameKeys = new Map<string, string>()
+for (const [key, value] of Object.entries(ParticleEffectName)) {
+    if (!particleEffectNameKeys.has(value)) {
+        particleEffectNameKeys.set(value, key)
+    }
+}
+
 export function newParticle(): Particle {
     return {
         title: '',
@@ -182,10 +189,10 @@ export function hasParticleEffectGroupParticle(
 }
 
 export function formatParticleEffectName(name: string) {
-    const kvp = Object.entries(ParticleEffectName).find(([, v]) => v === name)
-    if (!kvp) return `Custom: ${name}`
+    const key = particleEffectNameKeys.get(name)
+    if (!key) return `Custom: ${name}`
 
-    return formatNameKey(kvp[0])
+    return formatNameKey(key)
 }
 
 export function addParticleToWhitelist(particle: Particle, whitelist: Set<string>) {
