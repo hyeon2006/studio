@@ -910,7 +910,7 @@ function onCloneParticleEffectGroup(
                       effectName,
                       'groups',
                       `${effect.groups.length}`,
-                      ...view.value.slice(5),
+                      ...view.value.slice(6),
                   ]
                 : view.value,
         particles,
@@ -972,7 +972,7 @@ function onCloneParticleEffectGroupParticle(
                       `${groupIndex}`,
                       'particles',
                       `${group.particles.length}`,
-                      ...view.value.slice(6),
+                      ...view.value.slice(8),
                   ]
                 : view.value,
         particles,
