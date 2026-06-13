@@ -6,6 +6,7 @@ export type UseStateReturn = ReturnType<typeof useState>
 
 const state = reactive({
     index: 0,
+    savedIndex: 0,
     history: [newProject()],
 
     updater: '',
@@ -28,16 +29,17 @@ watchEffect(() => {
 })
 
 addEventListener('beforeunload', (event) => {
-    if (state.history.length <= 1) return
+    if (!isCurrentProjectModified()) return
 
     event.preventDefault()
+    event.returnValue = ''
 })
 
 export function useState() {
     const project = computed(() => state.history[state.index]!)
     const canUndo = computed(() => state.index > 0)
     const canRedo = computed(() => state.index < state.history.length - 1)
-    const isModified = computed(() => state.history.length > 1)
+    const isModified = computed(isCurrentProjectModified)
 
     const view = toRef(state, 'view')
     const isExplorerOpened = toRef(state, 'isExplorerOpened')
@@ -59,14 +61,33 @@ export function clearUpdater() {
     state.updater = ''
 }
 
+export function markSaved() {
+    state.savedIndex = state.index
+}
+
 export function push(project: Project, updater = '') {
     state.history.length = state.index + 1
+    if (state.savedIndex > state.index) state.savedIndex = -1
 
     const now = Date.now().valueOf()
-    if (updater && state.updater === updater && now - state.updaterTime < 2000) {
+    if (
+        updater &&
+        state.updater === updater &&
+        now - state.updaterTime < 2000 &&
+        state.index !== state.savedIndex
+    ) {
         state.history[state.index] = project
     } else {
-        if (state.history.length > 50) state.history.shift()
+        while (state.history.length >= 50) {
+            state.history.shift()
+            state.index--
+
+            if (state.savedIndex > 0) {
+                state.savedIndex--
+            } else if (state.savedIndex === 0) {
+                state.savedIndex = -1
+            }
+        }
 
         state.history.push(project)
         state.index = state.history.length - 1
@@ -81,6 +102,7 @@ export function replace(project: Project) {
     state.history.length = 0
     state.history.push(project)
     state.index = 0
+    state.savedIndex = 0
 
     state.view = []
     clearUpdater()
@@ -112,4 +134,8 @@ function focusView(targetView: string[]) {
     } else if (!isViewValid(project, state.view)) {
         state.view = []
     }
+}
+
+function isCurrentProjectModified() {
+    return state.index !== state.savedIndex
 }

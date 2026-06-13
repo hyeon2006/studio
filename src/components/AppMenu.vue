@@ -2,12 +2,13 @@
 import { saveAs } from 'file-saver'
 import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { show, useModal } from '../composables/modal'
-import { push, redo, replace, undo, useState } from '../composables/state'
+import { markSaved, push, redo, replace, undo, useState } from '../composables/state'
 import { toast } from '../composables/toast'
 import { newProject, type Project } from '../core/project'
 import IconBox from '../icons/box-solid.svg?component'
 import IconList from '../icons/list-solid.svg?component'
 import ModalConfirmation from './modals/ModalConfirmation.vue'
+import ModalImportConflicts from './modals/ModalImportConflicts.vue'
 import ModalPackProject from './modals/ModalPackProject.vue'
 import ModalUnpackPackage from './modals/ModalUnpackPackage.vue'
 
@@ -107,6 +108,11 @@ function onFileInput() {
 
     el.value.value = ''
 
+    if (!isPackageFile(file)) {
+        toast('Only .scp packages can be opened.', 'error')
+        return
+    }
+
     void onFileSelected.value?.(file)
 }
 
@@ -118,7 +124,9 @@ function selectFile(callback: (file: File) => Promise<void>) {
 }
 
 async function unpackAndReplace(file: File, handle?: FileSystemFileHandle) {
-    const selectedProject: Project | undefined = await show(ModalUnpackPackage, file)
+    const selectedProject: Project | undefined = await show(ModalUnpackPackage, file, {
+        dismissible: false,
+    })
     if (!selectedProject) return
 
     replace(selectedProject)
@@ -200,6 +208,11 @@ function onDrop(e: DragEvent) {
 }
 
 async function onDropFile(file: File, handlePromise?: Promise<FileSystemHandle | null>) {
+    if (!isPackageFile(file)) {
+        toast('Only .scp packages can be opened.', 'error')
+        return
+    }
+
     if (isModified.value) {
         const result = await show(ModalConfirmation, {
             message: 'Opening a project will cause current project to be closed. Continue?',
@@ -220,29 +233,34 @@ async function onDropFile(file: File, handlePromise?: Promise<FileSystemHandle |
 
 function onImportProject() {
     selectFile(async (file) => {
-        const selectedProject: Project | undefined = await show(ModalUnpackPackage, file)
+        const selectedProject: Project | undefined = await show(ModalUnpackPackage, file, {
+            dismissible: false,
+        })
         if (!selectedProject) return
 
-        const skins = await merge(
-            project.value.skins,
-            selectedProject.skins,
-            (name) => `Skin "${name}" already exists. Overwrite?`,
-        )
-        const backgrounds = await merge(
+        const conflicts = [
+            collectConflicts('Skins', project.value.skins, selectedProject.skins),
+            collectConflicts('Backgrounds', project.value.backgrounds, selectedProject.backgrounds),
+            collectConflicts('SFX', project.value.effects, selectedProject.effects),
+            collectConflicts('Particles', project.value.particles, selectedProject.particles),
+        ].filter(({ names }) => names.length)
+
+        let conflictMode: 'skip' | 'overwrite' = 'overwrite'
+        if (conflicts.length) {
+            const result = await show(ModalImportConflicts, { conflicts })
+            if (!result) return
+
+            conflictMode = result
+        }
+
+        const skins = merge(project.value.skins, selectedProject.skins, conflictMode)
+        const backgrounds = merge(
             project.value.backgrounds,
             selectedProject.backgrounds,
-            (name) => `Background "${name}" already exists. Overwrite?`,
+            conflictMode,
         )
-        const effects = await merge(
-            project.value.effects,
-            selectedProject.effects,
-            (name) => `SFX "${name}" already exists. Overwrite?`,
-        )
-        const particles = await merge(
-            project.value.particles,
-            selectedProject.particles,
-            (name) => `Particle "${name}" already exists. Overwrite?`,
-        )
+        const effects = merge(project.value.effects, selectedProject.effects, conflictMode)
+        const particles = merge(project.value.particles, selectedProject.particles, conflictMode)
 
         push({
             view: project.value.view,
@@ -254,21 +272,28 @@ function onImportProject() {
             effects,
             particles,
         })
+        toast('Imported project', 'success')
 
-        async function merge<T>(
+        function collectConflicts<T>(
+            label: string,
             source: Map<string, T>,
             target: Map<string, T>,
-            message: (name: string) => string,
+        ) {
+            return {
+                label,
+                names: [...target.keys()].filter((name) => source.has(name)),
+            }
+        }
+
+        function merge<T>(
+            source: Map<string, T>,
+            target: Map<string, T>,
+            mode: 'skip' | 'overwrite',
         ) {
             const output = new Map(source)
 
             for (const [name, item] of target) {
-                if (output.has(name)) {
-                    const result = await show(ModalConfirmation, {
-                        message: message(name),
-                    })
-                    if (!result) continue
-                }
+                if (output.has(name) && mode === 'skip') continue
 
                 output.set(name, item)
             }
@@ -286,6 +311,11 @@ const packageFileTypes = [
         accept: { 'application/octet-stream': ['.scp'] },
     },
 ]
+const packageFileAccept = '.scp,application/octet-stream'
+
+function isPackageFile(file: File) {
+    return file.name.toLowerCase().endsWith('.scp')
+}
 
 function packageFileName() {
     const title = project.value.title.trim().replace(/[\\/:*?"<>|]/g, '_')
@@ -303,7 +333,8 @@ async function writeToHandle(handle: FileSystemFileHandle, blob: Blob) {
 async function saveBlobAs(blob: Blob) {
     if (!window.showSaveFilePicker) {
         saveAs(blob, packageFileName())
-        return
+        toast(`Download started: ${packageFileName()}`, 'success')
+        return true
     }
 
     try {
@@ -314,21 +345,27 @@ async function saveBlobAs(blob: Blob) {
 
         await writeToHandle(handle, blob)
         fileHandle.value = handle
+        return true
     } catch (err) {
-        if ((err as Error).name === 'AbortError') return
+        if ((err as Error).name === 'AbortError') return false
 
         console.error(err)
         saveAs(blob, packageFileName())
+        toast(`Download started: ${packageFileName()}`, 'success')
+        return true
     }
 }
 
 async function onSaveProject() {
-    const result: Blob | undefined = await show(ModalPackProject, project.value)
+    const result: Blob | undefined = await show(ModalPackProject, project.value, {
+        dismissible: false,
+    })
     if (!result) return
 
     if (fileHandle.value) {
         try {
             await writeToHandle(fileHandle.value, result)
+            markSaved()
             return
         } catch (err) {
             if ((err as Error).name === 'AbortError') return
@@ -337,14 +374,16 @@ async function onSaveProject() {
         }
     }
 
-    await saveBlobAs(result)
+    if (await saveBlobAs(result)) markSaved()
 }
 
 async function onSaveProjectAs() {
-    const result: Blob | undefined = await show(ModalPackProject, project.value)
+    const result: Blob | undefined = await show(ModalPackProject, project.value, {
+        dismissible: false,
+    })
     if (!result) return
 
-    await saveBlobAs(result)
+    if (await saveBlobAs(result)) markSaved()
 }
 
 watchEffect(() => {
@@ -481,7 +520,7 @@ function onKeyDown(e: KeyboardEvent) {
 
     <div v-if="openedIndex !== undefined" class="fixed z-30 h-full w-full" @click="close()" />
 
-    <input ref="el" class="hidden" type="file" @input="onFileInput()" />
+    <input ref="el" class="hidden" type="file" :accept="packageFileAccept" @input="onFileInput()" />
 
     <div
         v-if="isDragOver"

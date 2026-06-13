@@ -2,6 +2,12 @@
 import { useModal } from '../composables/modal'
 
 const { modal } = useModal()
+
+function closeFromBackdrop() {
+    if (!modal.value?.dismissible) return
+
+    modal.value.resolve()
+}
 </script>
 
 <template>
@@ -17,7 +23,7 @@ const { modal } = useModal()
             <div class="bg-sonolus-main/80 absolute h-full w-full backdrop-blur-sm" />
             <div
                 class="absolute flex h-full w-full flex-col items-center justify-center p-4"
-                @click.self="modal.resolve()"
+                @click.self="closeFromBackdrop()"
             >
                 <component
                     :is="modal.component"

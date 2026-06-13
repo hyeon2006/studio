@@ -18,6 +18,8 @@ const emit = defineEmits<{
 
 const el = ref<HTMLCanvasElement>()
 const description = ref<string>()
+const completed = ref(0)
+const total = ref(0)
 const aborted = ref(false)
 
 onMounted(async () => {
@@ -26,14 +28,17 @@ onMounted(async () => {
     }
 
     const { project, tasks, finish } = unpackPackage(props.data, el.value)
+    total.value = tasks.length
 
     try {
         for (const [i, task] of tasks.entries()) {
+            completed.value = i
             description.value = `${task.description} (${i + 1}/${tasks.length})`
             await nextTick()
             await task.execute()
 
             if (aborted.value) return
+            completed.value = i + 1
         }
 
         description.value = 'Completed.'
@@ -50,11 +55,22 @@ onMounted(async () => {
 })
 
 onUnmounted(() => (aborted.value = true))
+
+function cancel() {
+    aborted.value = true
+    emit('close')
+}
 </script>
 
 <template>
     <ModalBase :icon="IconSpinner" title="Unpacking Package">
-        {{ description }}
+        <div aria-live="polite">{{ description }}</div>
+        <div class="mt-4 h-2 overflow-hidden rounded-full bg-black/25">
+            <div
+                class="bg-sonolus-success h-full transition-all duration-200"
+                :style="{ width: total ? `${(completed / total) * 100}%` : '0%' }"
+            />
+        </div>
 
         <canvas ref="el" class="hidden" />
 
@@ -64,7 +80,7 @@ onUnmounted(() => (aborted.value = true))
                 :icon="IconTimes"
                 text="Cancel"
                 auto-focus
-                @click="$emit('close')"
+                @click="cancel()"
             />
         </template>
     </ModalBase>
