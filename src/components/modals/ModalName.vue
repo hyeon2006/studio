@@ -91,6 +91,7 @@ function tryClose() {
                     :options="options"
                     validate
                     :validator="validator"
+                    error-message="Use a unique name."
                 />
             </MyField>
         </template>
@@ -102,6 +103,7 @@ function tryClose() {
                     placeholder="Enter name..."
                     validate
                     :validator="validator"
+                    error-message="Use a unique name."
                     @enter="tryClose()"
                     @escape="close()"
                 />

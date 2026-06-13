@@ -11,6 +11,7 @@ const props = defineProps<{
     placeholder: string
     alpha?: boolean
     validate?: boolean
+    errorMessage?: string
 }>()
 
 const emit = defineEmits<{
@@ -57,6 +58,12 @@ const colorValue = computed({
 })
 
 const isError = computed(() => !validateInput(props, () => !!rgba.value))
+const resolvedErrorMessage = computed(() => {
+    if (!isError.value) return ''
+    if (props.errorMessage) return props.errorMessage
+
+    return props.alpha ? 'Use #RGBA or #RRGGBBAA.' : 'Use #RGB or #RRGGBB.'
+})
 
 function selectAll() {
     if (!el.value) return
@@ -70,37 +77,53 @@ function reset() {
 </script>
 
 <template>
-    <div
-        class="relative flex h-8 items-center overflow-hidden rounded-md"
-        :class="{ 'ring-sonolus-warning ring-1': isError }"
-    >
-        <input
-            ref="el"
-            v-model="value"
-            type="text"
-            class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
-            :placeholder="placeholder"
-            @focus="selectAll()"
-            @keydown.enter="$emit('enter')"
-            @keydown.escape="$emit('escape')"
-        />
-        <IconExclamation v-if="isError" class="icon pointer-events-none absolute top-2 left-2" />
+    <div>
         <div
-            v-else
-            class="icon pointer-events-none absolute top-2 left-2"
-            :style="{ backgroundColor: modelValue }"
-        />
-        <div class="clickable relative h-full flex-none">
-            <input v-model="colorValue" class="h-full w-8 opacity-0" type="color" tabindex="-1" />
-            <IconPalette class="icon pointer-events-none absolute top-2 left-2" />
-        </div>
-        <button
-            v-if="defaultValue !== undefined"
-            class="clickable h-full flex-none px-2"
-            tabindex="-1"
-            @click="reset()"
+            class="relative flex h-8 items-center overflow-hidden rounded-md"
+            :class="{ 'ring-sonolus-warning ring-1': isError }"
         >
-            <IconUndo class="icon" />
-        </button>
+            <input
+                ref="el"
+                v-model="value"
+                type="text"
+                class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
+                :placeholder="placeholder"
+                :aria-invalid="isError"
+                :title="resolvedErrorMessage"
+                @focus="selectAll()"
+                @keydown.enter="$emit('enter')"
+                @keydown.escape="$emit('escape')"
+            />
+            <IconExclamation v-if="isError" class="icon pointer-events-none absolute top-2 left-2" />
+            <div
+                v-else
+                class="icon pointer-events-none absolute top-2 left-2"
+                :style="{ backgroundColor: modelValue }"
+            />
+            <div class="clickable relative h-full flex-none">
+                <input
+                    v-model="colorValue"
+                    class="h-full w-8 opacity-0"
+                    type="color"
+                    tabindex="-1"
+                    title="Pick color"
+                    aria-label="Pick color"
+                />
+                <IconPalette class="icon pointer-events-none absolute top-2 left-2" />
+            </div>
+            <button
+                v-if="defaultValue !== undefined"
+                class="clickable h-full flex-none px-2"
+                tabindex="-1"
+                title="Reset"
+                aria-label="Reset"
+                @click="reset()"
+            >
+                <IconUndo class="icon" />
+            </button>
+        </div>
+        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+            {{ resolvedErrorMessage }}
+        </div>
     </div>
 </template>

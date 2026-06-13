@@ -14,6 +14,7 @@ const props = defineProps<{
         defaultValue: string
         placeholder: string
         validator?: Validator<string>
+        errorMessage?: string
     }
 }>()
 
@@ -43,6 +44,7 @@ function tryClose() {
             :placeholder="data.placeholder"
             validate
             :validator="data.validator"
+            :error-message="data.errorMessage"
             auto-focus
             @enter="tryClose()"
             @escape="close()"

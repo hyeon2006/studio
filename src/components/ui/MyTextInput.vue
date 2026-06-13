@@ -12,6 +12,7 @@ const props = defineProps<{
     placeholder: string
     validate?: boolean
     validator?: Validator<string>
+    errorMessage?: string
     autoFocus?: boolean
     suggestions?: { value: string; label?: string; hint?: string }[]
 }>()
@@ -41,6 +42,12 @@ const value = computed({
 })
 
 const isError = computed(() => !validateInput(props, (value) => !!value?.length))
+const resolvedErrorMessage = computed(() => {
+    if (!isError.value) return ''
+    if (props.errorMessage) return props.errorMessage
+
+    return value.value.trim() ? 'Invalid value.' : 'This field is required.'
+})
 
 const listEl = ref<HTMLDivElement>()
 const isFocused = ref(false)
@@ -127,59 +134,74 @@ async function clear() {
 </script>
 
 <template>
-    <div class="relative">
-        <div
-            class="flex h-8 items-center overflow-hidden rounded-md"
-            :class="{ 'ring-sonolus-warning ring-1': isError }"
-        >
-            <input
-                ref="el"
-                v-model="value"
-                type="text"
-                class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
-                :placeholder="placeholder"
-                @focus="onFocus()"
-                @blur="onBlur()"
-                @keydown.enter="onEnter()"
-                @keydown.escape="onEscape()"
-                @keydown.down.prevent="moveHighlight(1)"
-                @keydown.up.prevent="moveHighlight(-1)"
-            />
-            <IconKeyboard class="icon pointer-events-none absolute top-2 left-2" />
-            <button
-                v-if="defaultValue !== undefined"
-                class="clickable h-full flex-none px-2"
-                tabindex="-1"
-                @click="reset()"
+    <div>
+        <div class="relative">
+            <div
+                class="flex h-8 items-center overflow-hidden rounded-md"
+                :class="{ 'ring-sonolus-warning ring-1': isError }"
             >
-                <IconUndo class="icon" />
-            </button>
-            <button class="clickable h-full flex-none px-2" tabindex="-1" @click="clear()">
-                <IconTimes class="icon" />
-            </button>
-        </div>
-
-        <div
-            v-if="showSuggestions"
-            ref="listEl"
-            class="scrollbar bg-sonolus-main absolute top-full left-0 z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 shadow-lg"
-        >
-            <button
-                v-for="(suggestion, i) in suggestions"
-                :key="suggestion.value"
-                class="transparent-clickable flex w-full items-baseline justify-center gap-2 px-2 py-1"
-                :class="{ 'bg-sonolus-ui-button-normal': i === highlighted }"
-                tabindex="-1"
-                @mousedown.prevent="applySuggestion(suggestion.value)"
-            >
-                <span class="truncate">{{ suggestion.label ?? suggestion.value }}</span>
-                <span
-                    v-if="suggestion.hint"
-                    class="text-sonolus-ui-text-disabled truncate text-xs"
+                <input
+                    ref="el"
+                    v-model="value"
+                    type="text"
+                    class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
+                    :placeholder="placeholder"
+                    :aria-invalid="isError"
+                    :title="resolvedErrorMessage"
+                    @focus="onFocus()"
+                    @blur="onBlur()"
+                    @keydown.enter="onEnter()"
+                    @keydown.escape="onEscape()"
+                    @keydown.down.prevent="moveHighlight(1)"
+                    @keydown.up.prevent="moveHighlight(-1)"
+                />
+                <IconKeyboard class="icon pointer-events-none absolute top-2 left-2" />
+                <button
+                    v-if="defaultValue !== undefined"
+                    class="clickable h-full flex-none px-2"
+                    tabindex="-1"
+                    title="Reset"
+                    aria-label="Reset"
+                    @click="reset()"
                 >
-                    {{ suggestion.hint }}
-                </span>
-            </button>
+                    <IconUndo class="icon" />
+                </button>
+                <button
+                    class="clickable h-full flex-none px-2"
+                    tabindex="-1"
+                    title="Clear"
+                    aria-label="Clear"
+                    @click="clear()"
+                >
+                    <IconTimes class="icon" />
+                </button>
+            </div>
+
+            <div
+                v-if="showSuggestions"
+                ref="listEl"
+                class="scrollbar bg-sonolus-main absolute top-full left-0 z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 shadow-lg"
+            >
+                <button
+                    v-for="(suggestion, i) in suggestions"
+                    :key="suggestion.value"
+                    class="transparent-clickable flex w-full items-baseline justify-center gap-2 px-2 py-1"
+                    :class="{ 'bg-sonolus-ui-button-normal': i === highlighted }"
+                    tabindex="-1"
+                    @mousedown.prevent="applySuggestion(suggestion.value)"
+                >
+                    <span class="truncate">{{ suggestion.label ?? suggestion.value }}</span>
+                    <span
+                        v-if="suggestion.hint"
+                        class="text-sonolus-ui-text-disabled truncate text-xs"
+                    >
+                        {{ suggestion.hint }}
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+            {{ resolvedErrorMessage }}
         </div>
     </div>
 </template>

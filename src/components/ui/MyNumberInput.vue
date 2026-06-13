@@ -11,6 +11,7 @@ const props = defineProps<{
     placeholder: string
     validate?: boolean
     validator?: Validator<number>
+    errorMessage?: string
     autoFocus?: boolean
 }>()
 
@@ -44,6 +45,11 @@ const value = computed({
 })
 
 const isError = computed(() => !validateInput(props, () => true))
+const resolvedErrorMessage = computed(() => {
+    if (!isError.value) return ''
+
+    return props.errorMessage ?? 'Invalid number.'
+})
 
 function selectAll() {
     if (!el.value) return
@@ -73,30 +79,39 @@ function reset() {
 </script>
 
 <template>
-    <div
-        class="relative flex h-8 items-center overflow-hidden rounded-md"
-        :class="{ 'ring-sonolus-warning ring-1': isError }"
-    >
-        <input
-            ref="el"
-            v-model="value"
-            type="number"
-            inputmode="decimal"
-            class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
-            :placeholder="placeholder"
-            @focus="onFocus()"
-            @blur="onBlur()"
-            @keydown.enter="onEnter()"
-            @keydown.escape="$emit('escape')"
-        />
-        <IconKeyboard class="icon pointer-events-none absolute top-2 left-2" />
-        <button
-            v-if="defaultValue !== undefined"
-            class="clickable h-full flex-none px-2"
-            tabindex="-1"
-            @click="reset()"
+    <div>
+        <div
+            class="relative flex h-8 items-center overflow-hidden rounded-md"
+            :class="{ 'ring-sonolus-warning ring-1': isError }"
         >
-            <IconUndo class="icon" />
-        </button>
+            <input
+                ref="el"
+                v-model="value"
+                type="number"
+                inputmode="decimal"
+                class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
+                :placeholder="placeholder"
+                :aria-invalid="isError"
+                :title="resolvedErrorMessage"
+                @focus="onFocus()"
+                @blur="onBlur()"
+                @keydown.enter="onEnter()"
+                @keydown.escape="$emit('escape')"
+            />
+            <IconKeyboard class="icon pointer-events-none absolute top-2 left-2" />
+            <button
+                v-if="defaultValue !== undefined"
+                class="clickable h-full flex-none px-2"
+                tabindex="-1"
+                title="Reset"
+                aria-label="Reset"
+                @click="reset()"
+            >
+                <IconUndo class="icon" />
+            </button>
+        </div>
+        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+            {{ resolvedErrorMessage }}
+        </div>
     </div>
 </template>

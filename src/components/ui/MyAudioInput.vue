@@ -12,6 +12,7 @@ import ModalAudio from '../modals/ModalAudio.vue'
 const props = defineProps<{
     modelValue: string
     validate?: boolean
+    errorMessage?: string
 }>()
 
 const emit = defineEmits<{
@@ -36,6 +37,11 @@ watchEffect(async () => {
 })
 
 const isError = computed(() => !validateInput(props, () => audioInfo.value !== false))
+const resolvedErrorMessage = computed(() => {
+    if (!isError.value) return ''
+
+    return props.errorMessage ?? 'Select a valid audio file.'
+})
 
 function select() {
     if (!el.value) return
@@ -64,43 +70,58 @@ function clear() {
 </script>
 
 <template>
-    <div
-        class="relative flex h-8 items-center overflow-hidden rounded-md"
-        :class="{ 'ring-sonolus-warning ring-1': isError }"
-    >
-        <template v-if="modelValue">
-            <button
-                class="clickable flex h-full w-full flex-grow items-center px-2"
-                @click="open()"
-            >
-                <component
-                    :is="audioInfo === false ? IconExclamation : IconFileAudio"
-                    class="icon"
-                />
-                <div class="ml-2 flex-grow text-center">
-                    {{
-                        audioInfo === undefined
-                            ? 'Loading...'
-                            : audioInfo === false
-                              ? 'Error'
-                              : audioInfo
-                    }}
-                </div>
-            </button>
-            <button class="clickable h-full flex-none px-2" tabindex="-1" @click="clear()">
-                <IconTimes class="icon" />
-            </button>
-        </template>
-        <template v-else>
-            <button
-                class="clickable flex h-full w-full flex-grow items-center px-2"
-                @click="select()"
-            >
-                <IconFileAudio class="icon flex-none" />
-                <div class="ml-2 flex-grow text-center">Select Audio...</div>
-            </button>
-        </template>
+    <div>
+        <div
+            class="relative flex h-8 items-center overflow-hidden rounded-md"
+            :class="{ 'ring-sonolus-warning ring-1': isError }"
+        >
+            <template v-if="modelValue">
+                <button
+                    class="clickable flex h-full w-full flex-grow items-center px-2"
+                    :aria-invalid="isError"
+                    :title="isError ? resolvedErrorMessage : 'Preview audio'"
+                    @click="open()"
+                >
+                    <component
+                        :is="audioInfo === false ? IconExclamation : IconFileAudio"
+                        class="icon"
+                    />
+                    <div class="ml-2 flex-grow text-center">
+                        {{
+                            audioInfo === undefined
+                                ? 'Loading...'
+                                : audioInfo === false
+                                  ? 'Error'
+                                  : audioInfo
+                        }}
+                    </div>
+                </button>
+                <button
+                    class="clickable h-full flex-none px-2"
+                    tabindex="-1"
+                    title="Clear audio"
+                    aria-label="Clear audio"
+                    @click="clear()"
+                >
+                    <IconTimes class="icon" />
+                </button>
+            </template>
+            <template v-else>
+                <button
+                    class="clickable flex h-full w-full flex-grow items-center px-2"
+                    :aria-invalid="isError"
+                    :title="isError ? resolvedErrorMessage : 'Select audio'"
+                    @click="select()"
+                >
+                    <IconFileAudio class="icon flex-none" />
+                    <div class="ml-2 flex-grow text-center">Select Audio...</div>
+                </button>
+            </template>
 
-        <input ref="el" class="hidden" type="file" @input="onFileInput()" />
+            <input ref="el" class="hidden" type="file" accept="audio/*" @input="onFileInput()" />
+        </div>
+        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+            {{ resolvedErrorMessage }}
+        </div>
     </div>
 </template>

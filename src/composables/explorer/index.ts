@@ -112,6 +112,7 @@ export async function onNew<T>(
         title,
         defaultValue: '',
         placeholder,
+        errorMessage: 'Use a unique URI-safe name.',
         validator(name: string) {
             name = name.trim()
             if (!name.length) return false
@@ -168,6 +169,7 @@ export async function onRename<T>(
         title,
         defaultValue: oldName,
         placeholder,
+        errorMessage: 'Use a unique name.',
         validator(name: string) {
             name = name.trim()
             if (!name.length) return false
@@ -205,6 +207,7 @@ export async function onClone<T>(
         title,
         defaultValue: oldName,
         placeholder,
+        errorMessage: 'Use a unique name.',
         validator(name: string) {
             name = name.trim()
             if (!name.length) return false

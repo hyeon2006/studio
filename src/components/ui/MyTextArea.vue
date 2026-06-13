@@ -12,6 +12,7 @@ const props = defineProps<{
     placeholder: string
     validate?: boolean
     validator?: Validator<string>
+    errorMessage?: string
     autoFocus?: boolean
 }>()
 
@@ -38,6 +39,12 @@ const value = computed({
 })
 
 const isError = computed(() => !validateInput(props, (value) => !!value.length))
+const resolvedErrorMessage = computed(() => {
+    if (!isError.value) return ''
+    if (props.errorMessage) return props.errorMessage
+
+    return value.value.trim() ? 'Invalid value.' : 'This field is required.'
+})
 
 const isHelpOpened = ref(false)
 
@@ -142,6 +149,8 @@ function onEscape() {
                 class="clickable scrollbar w-full resize-none overflow-y-scroll rounded-md border-none p-2"
                 :class="{ 'ring-sonolus-warning ring-1': isError }"
                 :placeholder="placeholder"
+                :aria-invalid="isError"
+                :title="resolvedErrorMessage"
                 rows="4"
                 @focus="onFocus()"
                 @blur="onBlur()"
@@ -176,6 +185,9 @@ function onEscape() {
                 </button>
             </div>
         </div>
+        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+            {{ resolvedErrorMessage }}
+        </div>
         <div class="flex items-start gap-1">
             <div
                 v-if="previewText"
@@ -189,6 +201,7 @@ function onEscape() {
                 class="transparent-clickable flex-none rounded-md p-1"
                 :class="{ 'bg-sonolus-ui-button-highlighted': isHelpOpened }"
                 title="Localized text help"
+                aria-label="Localized text help"
                 tabindex="-1"
                 @click="isHelpOpened = !isHelpOpened"
             >
