@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -33,8 +33,11 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "vue": "recommended"
+    },
     "rules": {
-      "recommended": false,
+      "preset": "none",
       "complexity": {
         "noAdjacentSpacesInRegex": "error",
         "noExtraBooleanCast": "error",
@@ -62,6 +65,7 @@
         "noUndeclaredVariables": "error",
         "noUnreachable": "error",
         "noUnreachableSuper": "error",
+        "noUnusedImports": "error",
         "noUnsafeFinally": "error",
         "noUnsafeOptionalChaining": "error",
         "noUnusedLabels": "error",
@@ -258,6 +262,7 @@
     }
   },
   "html": {
+    "experimentalFullSupportEnabled": true,
     "formatter": {
       "indentScriptAndStyle": false,
       "selfCloseVoidElements": "always"
@@ -280,8 +285,7 @@
             "noUndeclaredVariables": "off",
             "noUnreachable": "off",
             "noUnreachableSuper": "off",
-            "noUnusedVariables": "off",
-            "noUnusedImports": "off"
+            "noUnusedVariables": "off"
           },
           "style": {
             "useConst": "error",

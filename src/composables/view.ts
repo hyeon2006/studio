@@ -1,4 +1,4 @@
-import { computed, type Ref, shallowRef, toRaw, triggerRef, watch } from 'vue'
+import { computed, type Ref, shallowRef, toRaw, watch } from 'vue'
 import { type ProjectItemTypeOf } from '../core/project'
 import { clone } from '../core/utils'
 import { push, useState } from './state'
