@@ -87,7 +87,12 @@ function remove(index: number) {
                     :options="iconOptions"
                     @update:model-value="update(i, { icon: $event })"
                 />
-                <button class="clickable h-8 flex-none rounded-md px-2" @click="remove(i)">
+                <button
+                    class="clickable h-8 flex-none rounded-md px-2"
+                    title="Remove tag"
+                    aria-label="Remove tag"
+                    @click="remove(i)"
+                >
                     <IconTrash class="icon" />
                 </button>
             </div>
@@ -104,6 +109,7 @@ function remove(index: number) {
                 class="clickable h-8 flex-none rounded-md px-2"
                 :class="{ 'bg-sonolus-ui-button-highlighted': isHelpOpened }"
                 title="Localized text help"
+                aria-label="Localized text help"
                 @click="isHelpOpened = !isHelpOpened"
             >
                 <IconQuestion class="icon" />

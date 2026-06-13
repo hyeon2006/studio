@@ -474,6 +474,8 @@ function onKeyDown(e: KeyboardEvent) {
     >
         <button
             class="transparent-clickable h-full flex-none px-2 sm:hidden"
+            title="Toggle explorer"
+            aria-label="Toggle explorer"
             @click="toggleExplorer()"
         >
             <IconList class="icon" />
@@ -483,6 +485,7 @@ function onKeyDown(e: KeyboardEvent) {
             :key="i"
             class="transparent-clickable h-full flex-none px-3"
             :class="{ 'bg-sonolus-ui-button-highlighted': openedIndex === i }"
+            :aria-expanded="openedIndex === i"
             @click.self="open(i)"
             @mouseover.self="switchTo(i)"
         >

@@ -92,12 +92,26 @@ function reset() {
         <div class="w-16 flex-shrink-0 text-center">
             {{ percentage ? `${(value * 100).toFixed(digits || 0)}%` : value.toFixed(digits || 0) }}
         </div>
-        <button class="clickable h-full flex-none px-2" @click="decrease()">
+        <button
+            class="clickable h-full flex-none px-2"
+            title="Decrease"
+            aria-label="Decrease"
+            @click="decrease()"
+        >
             <IconCaretLeft class="icon" />
         </button>
         <button
             class="clickable h-full w-full flex-grow p-2"
-            tabindex="-1"
+            role="slider"
+            :aria-valuemin="min"
+            :aria-valuemax="max"
+            :aria-valuenow="value"
+            title="Set value"
+            aria-label="Set value"
+            @keydown.left.prevent="decrease()"
+            @keydown.down.prevent="decrease()"
+            @keydown.right.prevent="increase()"
+            @keydown.up.prevent="increase()"
             @mousedown="onDown"
             @mousemove="onMove"
             @touchstart="onTouchDown"
@@ -112,13 +126,20 @@ function reset() {
                 </div>
             </div>
         </button>
-        <button class="clickable h-full flex-none px-2" @click="increase()">
+        <button
+            class="clickable h-full flex-none px-2"
+            title="Increase"
+            aria-label="Increase"
+            @click="increase()"
+        >
             <IconCaretRight class="icon" />
         </button>
         <button
             v-if="defaultValue !== undefined"
             class="clickable h-full flex-none px-2"
             tabindex="-1"
+            title="Reset"
+            aria-label="Reset"
             @click="reset()"
         >
             <IconUndo class="icon" />

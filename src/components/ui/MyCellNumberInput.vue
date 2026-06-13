@@ -57,6 +57,8 @@ function onEnter() {
         inputmode="decimal"
         class="clickable h-8 border-none px-2 text-center"
         :placeholder="placeholder"
+        :aria-label="placeholder"
+        :title="placeholder"
         @focus="onFocus()"
         @blur="onBlur()"
         @keydown.enter="onEnter()"

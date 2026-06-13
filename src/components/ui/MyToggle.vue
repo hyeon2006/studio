@@ -41,6 +41,10 @@ function reset() {
         <button
             ref="el"
             class="clickable h-full w-16 flex-none rounded-md p-2"
+            role="switch"
+            :aria-checked="value"
+            :title="value ? 'On' : 'Off'"
+            :aria-label="value ? 'On' : 'Off'"
             @click="value = !value"
         >
             <div
@@ -48,7 +52,13 @@ function reset() {
                 :class="value ? 'bg-sonolus-success translate-x-full' : 'bg-sonolus-warning'"
             />
         </button>
-        <button class="clickable ml-2 h-full flex-none rounded-md px-2" tabindex="-1" @click="reset()">
+        <button
+            class="clickable ml-2 h-full flex-none rounded-md px-2"
+            tabindex="-1"
+            title="Reset"
+            aria-label="Reset"
+            @click="reset()"
+        >
             <IconUndo class="icon" />
         </button>
     </div>

@@ -9,6 +9,7 @@ import {
     toKey,
     useExplorer,
 } from '../composables/explorer'
+import { show } from '../composables/modal'
 import { useState } from '../composables/state'
 import IconAngleDown from '../icons/angle-down-solid.svg?component'
 import IconAngleRight from '../icons/angle-right-solid.svg?component'
@@ -21,6 +22,7 @@ import IconPlus from '../icons/plus-solid.svg?component'
 import IconSearch from '../icons/search-solid.svg?component'
 import IconTimes from '../icons/times-solid.svg?component'
 import IconTrash from '../icons/trash-alt-solid.svg?component'
+import ModalConfirmation from './modals/ModalConfirmation.vue'
 import MyImageIcon from './ui/MyImageIcon.vue'
 import { resolveViewInfo } from './ViewManager'
 
@@ -76,6 +78,16 @@ function toggleMore(key: string) {
     }
 }
 
+async function confirmDelete(item: ExplorerItem) {
+    const result = await show(ModalConfirmation, {
+        message: `Delete "${item.title}"? This can be undone.`,
+    })
+    if (!result) return
+
+    item.onDelete?.()
+    activeItem.value = ''
+}
+
 onMounted(() => {
     window.addEventListener('resize', onWindowResize)
     onWindowResize()
@@ -124,18 +136,21 @@ function stopResize() {
                     type="text"
                     class="clickable h-full w-full border-none pr-8 pl-8"
                     placeholder="Search..."
+                    aria-label="Search project items"
                     @keydown.escape="searchQuery = ''"
                 />
                 <IconSearch class="icon pointer-events-none absolute top-2 left-2" />
                 <button
                     v-if="searchQuery"
                     class="transparent-clickable absolute right-0 h-full px-2"
+                    title="Clear search"
+                    aria-label="Clear search"
                     @click="searchQuery = ''"
                 >
                     <IconTimes class="icon" />
                 </button>
             </div>
-            <div class="scrollbar min-h-0 flex-1 overflow-y-auto">
+            <div class="scrollbar min-h-0 flex-1 overflow-y-auto" role="tree">
                 <div
                     v-for="item in tree"
                     :key="toKey(item.path)"
@@ -143,7 +158,14 @@ function stopResize() {
                     :class="{
                         'bg-sonolus-ui-button-normal': isPathCurrentView(item.path),
                     }"
+                    role="treeitem"
+                    tabindex="0"
+                    :aria-current="isPathCurrentView(item.path) ? 'page' : undefined"
+                    :aria-level="item.level + 1"
+                    :aria-expanded="item.hasChildren ? isOpened(item.path) : undefined"
                     @click="onClick(item)"
+                    @keydown.enter.prevent="onClick(item)"
+                    @keydown.space.prevent="onClick(item)"
                 >
                     <div
                         v-if="isPathCurrentView(item.path)"
@@ -160,6 +182,9 @@ function stopResize() {
                             'pl-20': item.level === 5,
                             'pointer-events-none opacity-0': !item.hasChildren,
                         }"
+                        :title="isOpened(item.path) ? 'Collapse' : 'Expand'"
+                        :aria-label="`${isOpened(item.path) ? 'Collapse' : 'Expand'} ${item.title}`"
+                        :aria-expanded="isOpened(item.path)"
                         @click.stop="toggle(item.path)"
                     >
                         <component
@@ -188,6 +213,8 @@ function stopResize() {
                             <button
                                 v-if="item.onNew"
                                 class="h-full px-2"
+                                :title="`New in ${item.title}`"
+                                :aria-label="`New in ${item.title}`"
                                 @click.stop="item.onNew?.()"
                             >
                                 <IconPlus class="icon" />
@@ -195,6 +222,8 @@ function stopResize() {
                             <button
                                 v-if="item.onRename"
                                 class="h-full px-2"
+                                :title="`Rename ${item.title}`"
+                                :aria-label="`Rename ${item.title}`"
                                 @click.stop="item.onRename?.()"
                             >
                                 <IconEdit class="icon" />
@@ -202,13 +231,18 @@ function stopResize() {
                             <button
                                 v-if="item.onDelete"
                                 class="h-full px-2"
-                                @click.stop="item.onDelete()"
+                                :title="`Delete ${item.title}`"
+                                :aria-label="`Delete ${item.title}`"
+                                @click.stop="confirmDelete(item)"
                             >
                                 <IconTrash class="icon" />
                             </button>
                             <button
                                 v-if="item.onClone || item.onCopy || item.onPaste"
                                 class="h-full px-2"
+                                :title="`More actions for ${item.title}`"
+                                :aria-label="`More actions for ${item.title}`"
+                                :aria-expanded="activeItem === toKey(item.path)"
                                 @click.stop="toggleMore(toKey(item.path))"
                             >
                                 <IconList class="icon" />
@@ -218,6 +252,8 @@ function stopResize() {
                             <button
                                 v-if="item.onClone"
                                 class="h-full px-2"
+                                :title="`Clone ${item.title}`"
+                                :aria-label="`Clone ${item.title}`"
                                 @click.stop="item.onClone?.()"
                             >
                                 <IconClone class="icon" />
@@ -225,6 +261,8 @@ function stopResize() {
                             <button
                                 v-if="item.onCopy"
                                 class="h-full px-2"
+                                :title="`Copy ${item.title}`"
+                                :aria-label="`Copy ${item.title}`"
                                 @click.stop="item.onCopy?.()"
                             >
                                 <IconBox class="icon" />
@@ -232,12 +270,16 @@ function stopResize() {
                             <button
                                 v-if="item.onPaste"
                                 class="h-full px-2"
+                                :title="`Paste into ${item.title}`"
+                                :aria-label="`Paste into ${item.title}`"
                                 @click.stop="item.onPaste?.()"
                             >
                                 <IconFile class="icon" />
                             </button>
                             <button
                                 class="h-full px-2"
+                                title="Close actions"
+                                aria-label="Close actions"
                                 @click.stop="toggleMore(toKey(item.path))"
                             >
                                 <IconTimes class="icon" />
