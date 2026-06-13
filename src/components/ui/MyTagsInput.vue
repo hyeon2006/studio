@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { Icon } from '@sonolus/core'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { localizeText } from '../../core/localization'
-import { formatNameKey } from '../../core/names'
 import { type ProjectTag } from '../../core/tag'
 import { suggestTextKeys } from '../../core/text-suggestions'
 import IconPlus from '../../icons/plus-solid.svg?component'
@@ -10,8 +8,8 @@ import IconQuestion from '../../icons/question-circle-solid.svg?component'
 import IconTrash from '../../icons/trash-alt-solid.svg?component'
 import MyButton from './MyButton.vue'
 import MyLocalizationHint from './MyLocalizationHint.vue'
+import MyTagIconSelect from './MyTagIconSelect.vue'
 import MyTextInput from './MyTextInput.vue'
-import MyTextSelect from './MyTextSelect.vue'
 
 const props = defineProps<{
     modelValue: ProjectTag[]
@@ -43,11 +41,6 @@ function preview(title: string) {
 
 const isHelpOpened = ref(false)
 
-const iconOptions = computed(() => ({
-    'No Icon': '',
-    ...Object.fromEntries(Object.entries(Icon).map(([key, value]) => [formatNameKey(key), value])),
-}))
-
 function cloneTags(): ProjectTag[] {
     return props.modelValue.map((tag) => ({ title: tag.title, icon: tag.icon }))
 }
@@ -73,22 +66,23 @@ function remove(index: number) {
 <template>
     <div class="flex flex-col gap-2">
         <div v-for="(tag, i) in modelValue" :key="i" class="flex flex-col gap-1">
-            <div class="flex items-center gap-1">
+            <div
+                class="grid grid-cols-[minmax(0,1fr)_auto] gap-1 sm:grid-cols-[minmax(0,1fr)_11rem_auto]"
+            >
                 <MyTextInput
-                    class="min-w-0 flex-1"
+                    class="col-span-2 min-w-0 sm:col-span-1"
                     :model-value="tag.title"
                     placeholder="Enter tag title or #..."
                     :suggestions="titleSuggestions(tag.title)"
                     @update:model-value="update(i, { title: $event })"
                 />
-                <MyTextSelect
-                    class="w-36 flex-none"
+                <MyTagIconSelect
+                    class="min-w-0"
                     :model-value="tag.icon"
-                    :options="iconOptions"
                     @update:model-value="update(i, { icon: $event })"
                 />
                 <button
-                    class="clickable h-8 flex-none rounded-md px-2"
+                    class="clickable h-8 w-10 rounded-md px-2"
                     title="Remove tag"
                     aria-label="Remove tag"
                     @click="remove(i)"
