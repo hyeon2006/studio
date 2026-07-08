@@ -147,7 +147,9 @@ export async function packJson<T>(json: T) {
 }
 
 export async function unpackJson<T>(data: Blob): Promise<T> {
-    return JSON.parse(ungzip(new Uint8Array(await toArrayBuffer(data)), { to: 'string' })) as never
+    return JSON.parse(
+        new TextDecoder().decode(ungzip(new Uint8Array(await toArrayBuffer(data)))),
+    ) as never
 }
 
 async function hash(data: BufferSource) {
