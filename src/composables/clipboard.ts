@@ -2,17 +2,19 @@ import { packRaw } from '../core/utils'
 import { toast } from './toast'
 
 const CLIPBOARD_KEY = 'sonolus_studio_clipboard'
+const DB_NAME = 'sonolus_studio'
+const DB_STORE = 'clipboard'
 
 interface SerializedFile {
     __type: 'File'
     name: string
     type: string
-    data: string
+    data: Blob
 }
 
 interface SerializedBlobUrl {
     __type: 'BlobUrl'
-    data: string
+    data: Blob
     mimeType: string
 }
 
@@ -41,21 +43,57 @@ interface PasteOptions {
     exclude?: string[]
 }
 
-function fileToDataUrl(file: Blob): Promise<string> {
+function openDb(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-            resolve(reader.result as string)
+        const request = indexedDB.open(DB_NAME, 1)
+        request.onupgradeneeded = () => {
+            request.result.createObjectStore(DB_STORE)
         }
-        reader.onerror = reject
-        reader.readAsDataURL(file)
+        request.onsuccess = () => {
+            resolve(request.result)
+        }
+        request.onerror = () => {
+            reject(request.error)
+        }
     })
 }
 
-async function dataUrlToFile(dataUrl: string, filename: string, mimeType: string): Promise<File> {
-    const res = await fetch(dataUrl)
-    const blob = await res.blob()
-    return new File([blob], filename, { type: mimeType })
+async function storageSet(value: unknown): Promise<void> {
+    const db = await openDb()
+    try {
+        await new Promise<void>((resolve, reject) => {
+            const tx = db.transaction(DB_STORE, 'readwrite')
+            tx.objectStore(DB_STORE).put(value, CLIPBOARD_KEY)
+            tx.oncomplete = () => {
+                resolve()
+            }
+            tx.onerror = () => {
+                reject(tx.error)
+            }
+            tx.onabort = () => {
+                reject(tx.error)
+            }
+        })
+    } finally {
+        db.close()
+    }
+}
+
+async function storageGet(): Promise<unknown> {
+    const db = await openDb()
+    try {
+        return await new Promise((resolve, reject) => {
+            const request = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get(CLIPBOARD_KEY)
+            request.onsuccess = () => {
+                resolve(request.result)
+            }
+            request.onerror = () => {
+                reject(request.error)
+            }
+        })
+    } finally {
+        db.close()
+    }
 }
 
 function isSerializedFile(data: unknown): data is SerializedFile {
@@ -169,7 +207,7 @@ async function serialize(data: unknown): Promise<unknown> {
             __type: 'File',
             name: data.name,
             type: data.type,
-            data: await fileToDataUrl(data),
+            data,
         } as SerializedFile
     } else if (typeof data === 'string' && data.startsWith('blob:')) {
         try {
@@ -177,7 +215,7 @@ async function serialize(data: unknown): Promise<unknown> {
             const blob = await res.blob()
             return {
                 __type: 'BlobUrl',
-                data: await fileToDataUrl(blob),
+                data: blob,
                 mimeType: blob.type,
             } as SerializedBlobUrl
         } catch (error) {
@@ -198,11 +236,9 @@ async function serialize(data: unknown): Promise<unknown> {
 
 async function deserialize(data: unknown): Promise<unknown> {
     if (isSerializedFile(data)) {
-        return await dataUrlToFile(data.data, data.name, data.type)
+        return new File([data.data], data.name, { type: data.type })
     } else if (isSerializedBlobUrl(data)) {
-        const res = await fetch(data.data)
-        const blob = await res.blob()
-        return URL.createObjectURL(blob)
+        return URL.createObjectURL(data.data)
     } else if (Array.isArray(data)) {
         return Promise.all(data.map(deserialize))
     } else if (typeof data === 'object' && data !== null) {
@@ -284,14 +320,12 @@ export function useClipboard() {
             const serializedData = await serialize(data)
             const serializedDependencies = await serialize(dependencies)
 
-            localStorage.setItem(
-                CLIPBOARD_KEY,
-                JSON.stringify({
-                    type,
-                    data: serializedData,
-                    dependencies: serializedDependencies,
-                }),
-            )
+            await storageSet({
+                type,
+                data: serializedData,
+                dependencies: serializedDependencies,
+            })
+            localStorage.removeItem(CLIPBOARD_KEY)
             toast('Copied to clipboard', 'success')
         } catch (err) {
             console.error(err)
@@ -300,14 +334,12 @@ export function useClipboard() {
     }
 
     async function paste(type: string, target: object, root?: unknown, options?: PasteOptions) {
-        const text = localStorage.getItem(CLIPBOARD_KEY)
-        if (!text) {
-            toast('Clipboard is empty', 'error')
-            return
-        }
-
         try {
-            const item = JSON.parse(text) as ClipboardItem
+            const item = (await storageGet()) as ClipboardItem | undefined
+            if (!item) {
+                toast('Clipboard is empty', 'error')
+                return
+            }
 
             if (item.type !== type) {
                 toast(`Type mismatch\nClipboard: ${item.type}\nTarget: ${type}`, 'error')
@@ -339,12 +371,9 @@ export function useClipboard() {
         }
     }
     async function read(type: string, root?: unknown) {
-        const text = localStorage.getItem(CLIPBOARD_KEY)
-        if (!text) return null
-
         try {
-            const item = JSON.parse(text) as ClipboardItem
-            if (item.type !== type) return null
+            const item = (await storageGet()) as ClipboardItem | undefined
+            if (!item || item.type !== type) return null
 
             const deserializedData = await deserialize(item.data)
 
