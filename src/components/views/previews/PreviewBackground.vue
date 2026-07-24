@@ -35,8 +35,10 @@ const backgroundAspectRatio = computed(
     () => props.background.data.aspectRatio ?? imageAspectRatio.value ?? 1,
 )
 
+const scaleX = computed(() => props.background.data.scaleX ?? 1)
+const scaleY = computed(() => props.background.data.scaleY ?? 1)
+
 const width = computed(() => {
-    console.log(aspectRatio)
     const inverse = backgroundAspectRatio.value / aspectRatioValue.value
     const isLarger = backgroundAspectRatio.value >= aspectRatioValue.value
     switch (props.background.data.fit) {
@@ -85,17 +87,19 @@ const blurRadius = computed(() => height.value * props.background.configuration.
                 class="absolute top-0 left-1/2 h-full -translate-x-1/2"
                 :style="{ width: `calc(100% * ${width})` }"
             >
-                <div
-                    class="relative top-1/2 h-0 -translate-y-1/2 overflow-hidden"
-                    :style="{
-                        paddingTop: `calc(100% / ${backgroundAspectRatio})`,
-                    }"
-                >
-                    <img
-                        class="absolute top-0 left-0 h-full w-full"
-                        :style="{ filter: `blur(${blurRadius}px)` }"
-                        :src="background.image"
-                    />
+                <div class="h-full w-full" :style="{ transform: `scale(${scaleX}, ${scaleY})` }">
+                    <div
+                        class="relative top-1/2 h-0 -translate-y-1/2 overflow-hidden"
+                        :style="{
+                            paddingTop: `calc(100% / ${backgroundAspectRatio})`,
+                        }"
+                    >
+                        <img
+                            class="absolute top-0 left-0 h-full w-full"
+                            :style="{ filter: `blur(${blurRadius}px)` }"
+                            :src="background.image"
+                        />
+                    </div>
                 </div>
             </div>
             <div

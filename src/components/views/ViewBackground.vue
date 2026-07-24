@@ -42,6 +42,16 @@ const useNaturalAspectRatio = computed({
     get: () => v.value.data.aspectRatio === undefined,
     set: (value) => (v.value.data.aspectRatio = value ? undefined : imageAspectRatio.value),
 })
+
+const scaleX = computed({
+    get: () => v.value.data.scaleX ?? 1,
+    set: (value) => (v.value.data.scaleX = value),
+})
+
+const scaleY = computed({
+    get: () => v.value.data.scaleY ?? 1,
+    set: (value) => (v.value.data.scaleY = value),
+})
 </script>
 
 <template>
@@ -115,6 +125,20 @@ const useNaturalAspectRatio = computed({
                 default-value="#000"
                 placeholder="Enter background color..."
                 validate
+            />
+        </MyField>
+        <MyField title="Scale X">
+            <MyNumberInput
+                v-model="scaleX"
+                :default-value="1"
+                placeholder="Enter background scale X..."
+            />
+        </MyField>
+        <MyField title="Scale Y">
+            <MyNumberInput
+                v-model="scaleY"
+                :default-value="1"
+                placeholder="Enter background scale Y..."
             />
         </MyField>
     </MySection>

@@ -34,6 +34,8 @@ export function newBackground(): Background {
         data: {
             fit: 'cover',
             color: '#000',
+            scaleX: 1,
+            scaleY: 1,
         },
         configuration: {
             scope: '',
@@ -186,7 +188,11 @@ function unpackBackground({ project, tasks, getRaw, getJson }: UnpackProcess, na
             tasks.push({
                 description: `Unpacking background "${name}" data...`,
                 async execute() {
-                    item.data = await unpackJson(await getRaw(details.item.data.url))
+                    item.data = {
+                        scaleX: 1,
+                        scaleY: 1,
+                        ...(await unpackJson<BackgroundData>(await getRaw(details.item.data.url))),
+                    }
                 },
             })
 
