@@ -65,7 +65,7 @@ onMounted(async () => {
                 v-model="search"
                 placeholder="Search sprites..."
             />
-            
+
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="flex flex-wrap gap-2">
                     <MyButton
@@ -81,7 +81,7 @@ onMounted(async () => {
                         @click="deselectAll"
                     />
                 </div>
-                <div class="text-sm text-sonolus-ui-text-normal whitespace-nowrap ml-auto">
+                <div class="ml-auto text-sm whitespace-nowrap text-sonolus-ui-text-normal">
                     {{ selected.size }} selected
                 </div>
             </div>
@@ -96,7 +96,7 @@ onMounted(async () => {
                 @click="toggle(name)"
             >
                 <div
-                    class="border-sonolus-ui-text-normal flex h-4 w-4 flex-none items-center justify-center border"
+                    class="flex h-4 w-4 flex-none items-center justify-center border border-sonolus-ui-text-normal"
                     :class="{
                         'border-sonolus-warning bg-sonolus-warning text-sonolus-main':
                             selected.has(name),
@@ -108,7 +108,7 @@ onMounted(async () => {
             </div>
             <div
                 v-if="filteredSprites.length === 0"
-                class="text-sonolus-ui-text-disabled py-4 text-center"
+                class="py-4 text-center text-sonolus-ui-text-disabled"
             >
                 No sprites found
             </div>

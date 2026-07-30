@@ -87,25 +87,16 @@ function cancel() {
     <ModalBase :icon="IconSpinner" title="Unpacking Package">
         <div aria-live="polite">{{ description }}</div>
         <div class="mt-4 h-2 overflow-hidden rounded-full bg-black/25">
-            <div
-                class="bg-sonolus-success h-full"
-                :style="{ width: `${progressPercentage}%` }"
-            />
+            <div class="h-full bg-sonolus-success" :style="{ width: `${progressPercentage}%` }" />
         </div>
-        <div class="text-sonolus-ui-text-soften mt-1 text-right text-xs">
+        <div class="mt-1 text-right text-xs text-sonolus-ui-text-soften">
             {{ progressPercentage }}%
         </div>
 
         <canvas ref="el" class="hidden" />
 
         <template #actions>
-            <MyButton
-                class="w-24"
-                :icon="IconTimes"
-                text="Cancel"
-                auto-focus
-                @click="cancel()"
-            />
+            <MyButton class="w-24" :icon="IconTimes" text="Cancel" auto-focus @click="cancel()" />
         </template>
     </ModalBase>
 </template>

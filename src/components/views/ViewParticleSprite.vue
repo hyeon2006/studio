@@ -10,10 +10,8 @@ const props = defineProps<{
     data: Particle
 }>()
 
-const v = useView(
-    props,
-    'particles',
-    (v, view) => v.value.data.sprites.find(({ id }) => id === view.value[3])!,
+const v = useView(props, 'particles', (v, view) =>
+    v.value.data.sprites.find(({ id }) => id === view.value[3])!,
 )
 </script>
 

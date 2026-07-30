@@ -38,7 +38,9 @@ const listboxId = `tag-icon-select-${Math.random().toString(36).slice(2)}`
 
 onClickOutside(container, close)
 
-const selectedIndex = computed(() => options.value.findIndex((option) => option.value === props.modelValue))
+const selectedIndex = computed(() =>
+    options.value.findIndex((option) => option.value === props.modelValue),
+)
 const selected = computed<TagIconOption>(
     () =>
         options.value.find((option) => option.value === props.modelValue) ?? {
@@ -157,7 +159,7 @@ function initials(label: string) {
             @keydown.escape.prevent="close()"
         >
             <span
-                class="bg-sonolus-ui-button-normal flex h-5 w-5 flex-none items-center justify-center rounded text-[10px] font-semibold"
+                class="flex h-5 w-5 flex-none items-center justify-center rounded bg-sonolus-ui-button-normal text-[10px] font-semibold"
                 aria-hidden="true"
             >
                 <svg
@@ -179,7 +181,7 @@ function initials(label: string) {
             v-if="isOpen"
             :id="listboxId"
             role="listbox"
-            class="scrollbar bg-sonolus-main absolute top-full left-0 z-50 mt-1 max-h-64 w-64 min-w-full max-w-[calc(100vw-2rem)] overflow-y-auto rounded-md border border-white/10 shadow-lg"
+            class="scrollbar absolute top-full left-0 z-50 mt-1 max-h-64 w-64 max-w-[calc(100vw-2rem)] min-w-full overflow-y-auto rounded-md border border-white/10 bg-sonolus-main shadow-lg"
         >
             <button
                 v-for="(option, index) in options"
@@ -187,7 +189,7 @@ function initials(label: string) {
                 :id="optionId(index)"
                 role="option"
                 :aria-selected="option.value === modelValue"
-                class="clickable bg-sonolus-main flex w-full items-center gap-2 px-2 py-1 text-left transition-colors"
+                class="clickable flex w-full items-center gap-2 bg-sonolus-main px-2 py-1 text-left transition-colors"
                 :class="{
                     'bg-sonolus-ui-button-normal': option.value === modelValue,
                     'bg-sonolus-ui-button-highlighted': index === highlightedIndex,
@@ -196,7 +198,7 @@ function initials(label: string) {
                 @click="selectOption(index)"
             >
                 <span
-                    class="bg-sonolus-ui-button-normal flex h-5 w-5 flex-none items-center justify-center rounded text-[10px] font-semibold"
+                    class="flex h-5 w-5 flex-none items-center justify-center rounded bg-sonolus-ui-button-normal text-[10px] font-semibold"
                     aria-hidden="true"
                 >
                     <svg
@@ -211,7 +213,9 @@ function initials(label: string) {
                     <span v-else>-</span>
                 </span>
                 <span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
-                <span class="text-sonolus-ui-text-disabled truncate text-xs">{{ option.value }}</span>
+                <span class="truncate text-xs text-sonolus-ui-text-disabled">{{
+                    option.value
+                }}</span>
             </button>
         </div>
     </div>

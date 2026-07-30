@@ -92,7 +92,7 @@ function remove(index: number) {
             </div>
             <div
                 v-if="tag.title.startsWith('#')"
-                class="text-sonolus-ui-text-soften truncate text-left text-xs"
+                class="truncate text-left text-xs text-sonolus-ui-text-soften"
             >
                 Preview: {{ preview(tag.title) }}
             </div>

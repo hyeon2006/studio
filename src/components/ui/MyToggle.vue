@@ -49,7 +49,7 @@ function reset() {
         >
             <div
                 class="h-full w-1/2 transition-all duration-200"
-                :class="value ? 'bg-sonolus-success translate-x-full' : 'bg-sonolus-warning'"
+                :class="value ? 'translate-x-full bg-sonolus-success' : 'bg-sonolus-warning'"
             />
         </button>
         <button

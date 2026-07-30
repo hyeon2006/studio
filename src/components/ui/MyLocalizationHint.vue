@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-    <div class="text-sonolus-ui-text-soften rounded-md bg-white/5 p-2 text-left text-xs">
+    <div class="rounded-md bg-white/5 p-2 text-left text-xs text-sonolus-ui-text-soften">
         <div>#KEY — localized text, e.g. #PUBLISHED → Published</div>
         <div>#KEY:value — interpolate argument, e.g. #DAY_PAST:42 → 42d ago</div>
         <div>#KEY:#KEY:value — nest, e.g. #PUBLISHED:#SEPARATOR_COLON:#DAY_PAST:42</div>

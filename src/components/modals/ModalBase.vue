@@ -11,7 +11,7 @@ const titleId = `modal-${Math.random().toString(36).slice(2)}`
 
 <template>
     <div
-        class="bg-sonolus-ui-surface overflow-hidden rounded-xl border border-white/10 shadow-2xl shadow-black/50"
+        class="overflow-hidden rounded-xl border border-white/10 bg-sonolus-ui-surface shadow-2xl shadow-black/50"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="titleId"

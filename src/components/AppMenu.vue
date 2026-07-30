@@ -508,7 +508,7 @@ function onKeyDown(e: KeyboardEvent) {
                         >
                             <div class="flex-grow">{{ item.title }}</div>
                             <div
-                                class="text-sonolus-ui-text-disabled ml-8 hidden flex-shrink-0 text-xs sm:block"
+                                class="ml-8 hidden flex-shrink-0 text-xs text-sonolus-ui-text-disabled sm:block"
                             >
                                 {{ formatHotkey(item.key) }}
                             </div>
@@ -527,7 +527,7 @@ function onKeyDown(e: KeyboardEvent) {
 
     <div
         v-if="isDragOver"
-        class="bg-sonolus-main/80 pointer-events-none fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+        class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-sonolus-main/80 backdrop-blur-sm"
     >
         <div
             class="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-white/30 px-16 py-12"

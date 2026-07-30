@@ -74,7 +74,7 @@ const blurRadius = computed(() => height.value * props.background.configuration.
         />
     </MyField>
 
-    <div class="border-sonolus-ui-text-normal my-4 border-4">
+    <div class="my-4 border-4 border-sonolus-ui-text-normal">
         <div
             ref="el"
             class="relative h-0 overflow-hidden"

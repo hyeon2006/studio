@@ -9,10 +9,8 @@ const props = defineProps<{
     data: Effect
 }>()
 
-const v = useView(
-    props,
-    'effects',
-    (v, view) => v.value.data.clips.find(({ name }) => name === view.value[3])!,
+const v = useView(props, 'effects', (v, view) =>
+    v.value.data.clips.find(({ name }) => name === view.value[3])!,
 )
 </script>
 

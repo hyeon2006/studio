@@ -153,7 +153,7 @@ watchPostEffect(() => {
         />
     </MyField>
 
-    <div class="border-sonolus-ui-text-normal mx-auto my-4 max-w-sm border-4">
+    <div class="mx-auto my-4 max-w-sm border-4 border-sonolus-ui-text-normal">
         <div class="relative h-0 overflow-hidden pt-[100%]" :style="{ backgroundColor }">
             <canvas
                 ref="elBack"
@@ -171,12 +171,7 @@ watchPostEffect(() => {
             />
         </div>
     </div>
-    <MyButton
-        class="mx-auto mt-4"
-        :icon="IconUndo"
-        text="Reset"
-        @click="resetRect()"
-    />
+    <MyButton class="mx-auto mt-4" :icon="IconUndo" text="Reset" @click="resetRect()" />
 
     <canvas ref="elBuffer" class="hidden" />
 </template>

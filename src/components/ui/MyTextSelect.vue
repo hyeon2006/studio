@@ -53,7 +53,7 @@ function reset() {
     <div>
         <div
             class="flex h-8 items-center overflow-hidden rounded-md"
-            :class="{ 'ring-sonolus-warning ring-1': isError }"
+            :class="{ 'ring-1 ring-sonolus-warning': isError }"
         >
             <div class="relative h-full w-full flex-grow">
                 <select
@@ -85,7 +85,7 @@ function reset() {
                 <IconUndo class="icon" />
             </button>
         </div>
-        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+        <div v-if="isError" class="mt-1 text-left text-xs text-sonolus-warning" role="alert">
             {{ resolvedErrorMessage }}
         </div>
     </div>

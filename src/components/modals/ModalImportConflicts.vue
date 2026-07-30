@@ -26,11 +26,15 @@ const emit = defineEmits<{
                 Some imported items already exist in the current project.
             </div>
             <div class="scrollbar max-h-48 overflow-y-auto rounded-md bg-black/20 p-2 text-sm">
-                <div v-for="conflict in data.conflicts" :key="conflict.label" class="mb-3 last:mb-0">
+                <div
+                    v-for="conflict in data.conflicts"
+                    :key="conflict.label"
+                    class="mb-3 last:mb-0"
+                >
                     <div class="font-semibold">
                         {{ conflict.label }} ({{ conflict.names.length }})
                     </div>
-                    <div class="text-sonolus-ui-text-soften mt-1 break-words text-xs">
+                    <div class="mt-1 text-xs break-words text-sonolus-ui-text-soften">
                         {{ conflict.names.join(', ') }}
                     </div>
                 </div>

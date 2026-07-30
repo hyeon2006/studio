@@ -60,7 +60,7 @@ watch(elTopRef, () => {
         <MyToggle v-model="loop" :default-value="true" />
     </MyField>
 
-    <div class="border-sonolus-ui-text-normal mx-auto my-4 max-w-sm border-4">
+    <div class="mx-auto my-4 max-w-sm border-4 border-sonolus-ui-text-normal">
         <div class="relative h-0 overflow-hidden pt-[100%]" :style="{ backgroundColor }">
             <canvas
                 ref="elBackRef"
@@ -85,10 +85,6 @@ watch(elTopRef, () => {
             text="Randomize"
             @click="$emit('update:randomize', randomize + 1)"
         />
-        <MyButton
-            :icon="IconUndo"
-            text="Reset"
-            @click="$emit('reset')"
-        />
+        <MyButton :icon="IconUndo" text="Reset" @click="$emit('reset')" />
     </div>
 </template>

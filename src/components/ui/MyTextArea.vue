@@ -147,7 +147,7 @@ function onEscape() {
                 ref="el"
                 v-model="value"
                 class="clickable scrollbar w-full resize-none overflow-y-scroll rounded-md border-none p-2"
-                :class="{ 'ring-sonolus-warning ring-1': isError }"
+                :class="{ 'ring-1 ring-sonolus-warning': isError }"
                 :placeholder="placeholder"
                 :aria-invalid="isError"
                 :title="resolvedErrorMessage"
@@ -165,7 +165,7 @@ function onEscape() {
             <div
                 v-if="showSuggestions"
                 ref="listEl"
-                class="scrollbar bg-sonolus-main absolute top-full left-0 z-50 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 shadow-lg"
+                class="scrollbar absolute top-full left-0 z-50 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-sonolus-main shadow-lg"
             >
                 <button
                     v-for="(suggestion, i) in suggestions"
@@ -178,20 +178,20 @@ function onEscape() {
                     <span class="truncate">{{ suggestion.value }}</span>
                     <span
                         v-if="suggestion.hint"
-                        class="text-sonolus-ui-text-disabled truncate text-xs"
+                        class="truncate text-xs text-sonolus-ui-text-disabled"
                     >
                         {{ suggestion.hint }}
                     </span>
                 </button>
             </div>
         </div>
-        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+        <div v-if="isError" class="mt-1 text-left text-xs text-sonolus-warning" role="alert">
             {{ resolvedErrorMessage }}
         </div>
         <div class="flex items-start gap-1">
             <div
                 v-if="previewText"
-                class="text-sonolus-ui-text-soften flex min-w-0 flex-1 gap-1 text-left text-xs"
+                class="flex min-w-0 flex-1 gap-1 text-left text-xs text-sonolus-ui-text-soften"
             >
                 <div class="flex-none">Preview:</div>
                 <div class="min-w-0 whitespace-pre-line">{{ previewText }}</div>

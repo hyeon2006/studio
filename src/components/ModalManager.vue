@@ -20,7 +20,7 @@ function closeFromBackdrop() {
         leave-active-class="transition-opacity duration-200 pointer-events-none mt-1"
     >
         <div v-if="modal" class="fixed top-0 left-0 z-50 h-full w-full">
-            <div class="bg-sonolus-main/80 absolute h-full w-full backdrop-blur-sm" />
+            <div class="absolute h-full w-full bg-sonolus-main/80 backdrop-blur-sm" />
             <div
                 class="absolute flex h-full w-full flex-col items-center justify-center p-4"
                 @click.self="closeFromBackdrop()"

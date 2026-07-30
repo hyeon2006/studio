@@ -22,10 +22,8 @@ const props = defineProps<{
 
 const { copy, paste } = useClipboard()
 
-const v = useView(
-    props,
-    'particles',
-    (v, view) => v.value.data.effects.find(({ name }) => name === view.value[3])!,
+const v = useView(props, 'particles', (v, view) =>
+    v.value.data.effects.find(({ name }) => name === view.value[3])!,
 )
 
 const rows = ['x1', 'x2', 'x3', 'x4', 'y1', 'y2', 'y3', 'y4'] as const

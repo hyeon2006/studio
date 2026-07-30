@@ -138,7 +138,7 @@ async function clear() {
         <div class="relative">
             <div
                 class="flex h-8 items-center overflow-hidden rounded-md"
-                :class="{ 'ring-sonolus-warning ring-1': isError }"
+                :class="{ 'ring-1 ring-sonolus-warning': isError }"
             >
                 <input
                     ref="el"
@@ -180,7 +180,7 @@ async function clear() {
             <div
                 v-if="showSuggestions"
                 ref="listEl"
-                class="scrollbar bg-sonolus-main absolute top-full left-0 z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 shadow-lg"
+                class="scrollbar absolute top-full left-0 z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-sonolus-main shadow-lg"
             >
                 <button
                     v-for="(suggestion, i) in suggestions"
@@ -193,14 +193,14 @@ async function clear() {
                     <span class="truncate">{{ suggestion.label ?? suggestion.value }}</span>
                     <span
                         v-if="suggestion.hint"
-                        class="text-sonolus-ui-text-disabled truncate text-xs"
+                        class="truncate text-xs text-sonolus-ui-text-disabled"
                     >
                         {{ suggestion.hint }}
                     </span>
                 </button>
             </div>
         </div>
-        <div v-if="isError" class="text-sonolus-warning mt-1 text-left text-xs" role="alert">
+        <div v-if="isError" class="mt-1 text-left text-xs text-sonolus-warning" role="alert">
             {{ resolvedErrorMessage }}
         </div>
     </div>

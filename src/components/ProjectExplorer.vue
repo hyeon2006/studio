@@ -122,7 +122,7 @@ function stopResize() {
 
 <template>
     <div
-        class="bg-sonolus-main/80 fixed top-8 bottom-0 left-0 z-20 flex w-full -translate-x-full border-r border-white/10 text-sm opacity-0 backdrop-blur-md sm:translate-x-0 sm:opacity-100"
+        class="fixed top-8 bottom-0 left-0 z-20 flex w-full -translate-x-full border-r border-white/10 bg-sonolus-main/80 text-sm opacity-0 backdrop-blur-md sm:translate-x-0 sm:opacity-100"
         :class="{
             'translate-x-0 opacity-100': isExplorerOpened,
             'transition-all duration-200': !isResizing,
@@ -169,7 +169,7 @@ function stopResize() {
                 >
                     <div
                         v-if="isPathCurrentView(item.path)"
-                        class="bg-sonolus-glow absolute top-1.5 bottom-1.5 left-0.5 w-0.5 rounded-full"
+                        class="absolute top-1.5 bottom-1.5 left-0.5 w-0.5 rounded-full bg-sonolus-glow"
                     />
                     <button
                         class="h-full flex-none pr-2"
@@ -289,7 +289,7 @@ function stopResize() {
                 </div>
                 <div
                     v-if="searchQuery && !tree.length"
-                    class="text-sonolus-ui-text-disabled px-2 py-4 text-center"
+                    class="px-2 py-4 text-center text-sonolus-ui-text-disabled"
                 >
                     No matching items
                 </div>

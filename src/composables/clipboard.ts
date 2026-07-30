@@ -83,7 +83,10 @@ async function storageGet(): Promise<unknown> {
     const db = await openDb()
     try {
         return await new Promise((resolve, reject) => {
-            const request = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).get(CLIPBOARD_KEY)
+            const request = db
+                .transaction(DB_STORE, 'readonly')
+                .objectStore(DB_STORE)
+                .get(CLIPBOARD_KEY)
             request.onsuccess = () => {
                 resolve(request.result)
             }

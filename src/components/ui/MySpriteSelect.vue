@@ -116,7 +116,7 @@ function selectHighlighted() {
             v-if="isOpen"
             :id="listboxId"
             role="listbox"
-            class="bg-sonolus-main absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-white/10 shadow-lg"
+            class="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-white/10 bg-sonolus-main shadow-lg"
         >
             <button
                 v-for="(option, index) in options"
@@ -124,7 +124,7 @@ function selectHighlighted() {
                 :id="optionId(index)"
                 role="option"
                 :aria-selected="option.value === modelValue"
-                class="clickable flex w-full items-center justify-center gap-2 px-8 py-1 text-center transition-colors hover:bg-sonolus-ui-button-highlight bg-sonolus-main"
+                class="clickable hover:bg-sonolus-ui-button-highlight flex w-full items-center justify-center gap-2 bg-sonolus-main px-8 py-1 text-center transition-colors"
                 :class="{
                     'bg-sonolus-ui-button-normal': option.value === modelValue,
                     'bg-sonolus-ui-button-highlighted': index === highlightedIndex,
