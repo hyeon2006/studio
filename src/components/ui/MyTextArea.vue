@@ -2,7 +2,7 @@
 import { useMounted } from '@vueuse/core'
 import { computed, nextTick, ref, watch, watchEffect } from 'vue'
 import { localizeText } from '../../core/localization'
-import { suggestTextKeys } from '../../core/text-suggestions'
+import { suggestText } from '../../core/text-suggestions'
 import { type Validator, validateInput } from '../../core/validation'
 import IconQuestion from '../../icons/question-circle-solid.svg?component'
 import MyLocalizationHint from './MyLocalizationHint.vue'
@@ -65,14 +65,7 @@ function updateCaret() {
     caret.value = el.value?.selectionStart ?? 0
 }
 
-// the segment of the current line between the last ':' and the caret
-const tail = computed(() => {
-    const before = props.modelValue.slice(0, caret.value)
-    const line = before.slice(before.lastIndexOf('\n') + 1)
-    return line.slice(line.lastIndexOf(':') + 1)
-})
-
-const suggestions = computed(() => (tail.value.startsWith('#') ? suggestTextKeys(tail.value) : []))
+const suggestions = computed(() => suggestText(props.modelValue, caret.value))
 
 const showSuggestions = computed(
     () => isFocused.value && !isDismissed.value && !!suggestions.value.length,
@@ -94,12 +87,10 @@ function onBlur() {
 }
 
 function applySuggestion(candidate: string) {
-    const start = caret.value - tail.value.length
-    const newValue =
-        props.modelValue.slice(0, start) + candidate + props.modelValue.slice(caret.value)
-    const position = start + candidate.length
+    const position =
+        suggestions.value.find(({ value }) => value === candidate)?.caret ?? candidate.length
 
-    value.value = newValue
+    value.value = candidate
     highlighted.value = -1
 
     void nextTick(() => {
@@ -175,7 +166,7 @@ function onEscape() {
                     tabindex="-1"
                     @mousedown.prevent="applySuggestion(suggestion.value)"
                 >
-                    <span class="truncate">{{ suggestion.value }}</span>
+                    <span class="truncate">{{ suggestion.label }}</span>
                     <span
                         v-if="suggestion.hint"
                         class="truncate text-xs text-sonolus-ui-text-disabled"

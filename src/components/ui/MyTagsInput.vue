@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { localizeText } from '../../core/localization'
 import { type ProjectTag } from '../../core/tag'
-import { suggestTextKeys } from '../../core/text-suggestions'
 import IconPlus from '../../icons/plus-solid.svg?component'
 import IconQuestion from '../../icons/question-circle-solid.svg?component'
 import IconTrash from '../../icons/trash-alt-solid.svg?component'
@@ -18,26 +16,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     'update:modelValue': [value: ProjectTag[]]
 }>()
-
-// completes the segment after the last ':' so interpolations like
-// '#PUBLISHED:#SEPARATOR_COLON:#DAY_PAST:42' can be built up key by key
-function titleSuggestions(title: string) {
-    const lastColon = title.lastIndexOf(':')
-    const prefix = title.slice(0, lastColon + 1)
-    const tail = title.slice(lastColon + 1)
-
-    if (tail && !tail.startsWith('#')) return []
-
-    return suggestTextKeys(tail).map(({ value, hint }) => ({
-        value: prefix + value,
-        label: value,
-        hint,
-    }))
-}
-
-function preview(title: string) {
-    return localizeText(title) || '(empty)'
-}
 
 const isHelpOpened = ref(false)
 
@@ -73,7 +51,7 @@ function remove(index: number) {
                     class="col-span-2 min-w-0 sm:col-span-1"
                     :model-value="tag.title"
                     placeholder="Enter tag title or #..."
-                    :suggestions="titleSuggestions(tag.title)"
+                    localized
                     @update:model-value="update(i, { title: $event })"
                 />
                 <MyTagIconSelect
@@ -89,12 +67,6 @@ function remove(index: number) {
                 >
                     <IconTrash class="icon" />
                 </button>
-            </div>
-            <div
-                v-if="tag.title.startsWith('#')"
-                class="truncate text-left text-xs text-sonolus-ui-text-soften"
-            >
-                Preview: {{ preview(tag.title) }}
             </div>
         </div>
         <div class="flex items-center gap-1">

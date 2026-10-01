@@ -4,7 +4,7 @@ import textDts from '../../node_modules/@sonolus/core/dist/common/core/text/text
 export const enTexts: Record<string, string> = {}
 
 for (const [, text, key] of textDts.matchAll(
-    /\/\*\* en: ([\s\S]*?) \*\/\s*export declare const \w+: "([^"]+)"/g,
+    /\/\*\* en: ([\s\S]*?) \*\/\s*export declare const \w+: ['"]([^'"]+)['"]/g,
 )) {
     enTexts[key!] = text!
 }

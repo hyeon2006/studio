@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { useMounted } from '@vueuse/core'
 import { computed, nextTick, ref, watch, watchEffect } from 'vue'
+import { localizeText } from '../../core/localization'
+import { suggestText } from '../../core/text-suggestions'
 import { type Validator, validateInput } from '../../core/validation'
 import IconKeyboard from '../../icons/keyboard-solid.svg?component'
+import IconQuestion from '../../icons/question-circle-solid.svg?component'
 import IconTimes from '../../icons/times-solid.svg?component'
 import IconUndo from '../../icons/undo-alt-solid.svg?component'
+import MyLocalizationHint from './MyLocalizationHint.vue'
 
 const props = defineProps<{
     modelValue: string
@@ -15,6 +19,7 @@ const props = defineProps<{
     errorMessage?: string
     autoFocus?: boolean
     commitOnComma?: boolean
+    localized?: boolean
     suggestions?: { value: string; label?: string; hint?: string }[]
 }>()
 
@@ -56,17 +61,28 @@ const listEl = ref<HTMLDivElement>()
 const isFocused = ref(false)
 const isDismissed = ref(false)
 const highlighted = ref(-1)
+const caret = ref(0)
+const isHelpOpened = ref(false)
+const previewText = computed(() =>
+    props.localized && props.modelValue.startsWith('#')
+        ? localizeText(props.modelValue) || '(empty)'
+        : '',
+)
+const resolvedSuggestions = computed(
+    () => props.suggestions ?? (props.localized ? suggestText(props.modelValue, caret.value) : []),
+)
+
+function updateCaret() {
+    caret.value = el.value?.selectionStart ?? props.modelValue.length
+}
 
 const showSuggestions = computed(
-    () => isFocused.value && !isDismissed.value && !!props.suggestions?.length,
+    () => isFocused.value && !isDismissed.value && !!resolvedSuggestions.value.length,
 )
 
-watch(
-    () => props.suggestions,
-    () => {
-        highlighted.value = -1
-    },
-)
+watch(resolvedSuggestions, () => {
+    highlighted.value = -1
+})
 
 function selectAll() {
     if (!el.value) return
@@ -77,6 +93,7 @@ function onFocus() {
     isFocused.value = true
     isDismissed.value = false
     selectAll()
+    updateCaret()
 }
 
 function onBlur() {
@@ -85,15 +102,23 @@ function onBlur() {
 }
 
 function applySuggestion(suggestion: string) {
+    const position = props.localized
+        ? suggestText(props.modelValue, caret.value).find(({ value }) => value === suggestion)
+              ?.caret
+        : undefined
     value.value = suggestion
     highlighted.value = -1
-    el.value?.focus()
+    void nextTick(() => {
+        el.value?.focus()
+        if (position !== undefined) el.value?.setSelectionRange(position, position)
+        updateCaret()
+    })
 }
 
 function moveHighlight(offset: number) {
-    if (!showSuggestions.value || !props.suggestions?.length) return
+    if (!showSuggestions.value) return
 
-    const count = props.suggestions.length
+    const count = resolvedSuggestions.value.length
     highlighted.value = (highlighted.value + offset + count) % count
 
     void nextTick(() => {
@@ -103,7 +128,7 @@ function moveHighlight(offset: number) {
 
 function onEnter() {
     if (showSuggestions.value && highlighted.value >= 0) {
-        const suggestion = props.suggestions?.[highlighted.value]
+        const suggestion = resolvedSuggestions.value[highlighted.value]
         if (suggestion !== undefined) {
             applySuggestion(suggestion.value)
             return
@@ -160,6 +185,9 @@ async function clear() {
                     :title="resolvedErrorMessage"
                     @focus="onFocus()"
                     @blur="onBlur()"
+                    @click="updateCaret()"
+                    @input="updateCaret()"
+                    @keyup="updateCaret()"
                     @keydown="onKeyDown($event)"
                     @keydown.enter="onEnter()"
                     @keydown.escape="onEscape()"
@@ -195,7 +223,7 @@ async function clear() {
                 class="scrollbar absolute top-full left-0 z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-white/10 bg-sonolus-main shadow-lg"
             >
                 <button
-                    v-for="(suggestion, i) in suggestions"
+                    v-for="(suggestion, i) in resolvedSuggestions"
                     :key="suggestion.value"
                     class="transparent-clickable flex w-full items-baseline justify-center gap-2 px-2 py-1"
                     :class="{ 'bg-sonolus-ui-button-normal': i === highlighted }"
@@ -215,5 +243,24 @@ async function clear() {
         <div v-if="isError" class="mt-1 text-left text-xs text-sonolus-warning" role="alert">
             {{ resolvedErrorMessage }}
         </div>
+        <div v-if="localized" class="flex items-start gap-1">
+            <div
+                v-if="previewText"
+                class="min-w-0 flex-1 text-left text-xs whitespace-pre-line text-sonolus-ui-text-soften"
+            >
+                Preview: {{ previewText }}
+            </div>
+            <div v-else class="flex-1" />
+            <button
+                class="transparent-clickable flex-none rounded-md p-1"
+                :class="{ 'bg-sonolus-ui-button-highlighted': isHelpOpened }"
+                title="Localized text help"
+                aria-label="Localized text help"
+                @click="isHelpOpened = !isHelpOpened"
+            >
+                <IconQuestion class="icon" />
+            </button>
+        </div>
+        <MyLocalizationHint v-if="localized && isHelpOpened" />
     </div>
 </template>

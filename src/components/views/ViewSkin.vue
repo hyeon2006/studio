@@ -99,10 +99,15 @@ async function cropToPixelColumn(texture: string, anchor: HorizontalAnchor) {
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="v.title" placeholder="Enter skin title..." validate />
+            <MyTextInput v-model="v.title" placeholder="Enter skin title..." validate localized />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput v-model="v.subtitle" placeholder="Enter skin subtitle..." validate />
+            <MyTextInput
+                v-model="v.subtitle"
+                placeholder="Enter skin subtitle..."
+                validate
+                localized
+            />
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter skin author..." validate />

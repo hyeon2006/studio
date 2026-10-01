@@ -31,10 +31,15 @@ const v = useView(props, 'effects')
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="v.title" placeholder="Enter SFX title..." validate />
+            <MyTextInput v-model="v.title" placeholder="Enter SFX title..." validate localized />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput v-model="v.subtitle" placeholder="Enter SFX subtitle..." validate />
+            <MyTextInput
+                v-model="v.subtitle"
+                placeholder="Enter SFX subtitle..."
+                validate
+                localized
+            />
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter SFX author..." validate />

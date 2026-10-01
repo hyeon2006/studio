@@ -32,10 +32,20 @@ const v = useView(props, 'particles')
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="v.title" placeholder="Enter particle title..." validate />
+            <MyTextInput
+                v-model="v.title"
+                placeholder="Enter particle title..."
+                validate
+                localized
+            />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput v-model="v.subtitle" placeholder="Enter particle subtitle..." validate />
+            <MyTextInput
+                v-model="v.subtitle"
+                placeholder="Enter particle subtitle..."
+                validate
+                localized
+            />
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter particle author..." validate />

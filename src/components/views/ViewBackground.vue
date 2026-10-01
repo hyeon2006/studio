@@ -64,10 +64,20 @@ const scaleY = computed({
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="v.title" placeholder="Enter background title..." validate />
+            <MyTextInput
+                v-model="v.title"
+                placeholder="Enter background title..."
+                validate
+                localized
+            />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput v-model="v.subtitle" placeholder="Enter background subtitle..." validate />
+            <MyTextInput
+                v-model="v.subtitle"
+                placeholder="Enter background subtitle..."
+                validate
+                localized
+            />
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter background author..." validate />

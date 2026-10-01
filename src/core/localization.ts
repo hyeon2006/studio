@@ -1,11 +1,15 @@
+import { TextFunction } from '@sonolus/core'
 import { enTexts } from './text-en'
 
-// mirrors Sonolus text localization in English, for previewing tag titles
-export function localizeText(text: string) {
-    return text.split('\n').map(localizeLine).join('\n')
+// Standard text keys are previewed in English; custom translations use the requested locale.
+export function localizeText(text: string, locale = 'en') {
+    return text
+        .split('\n')
+        .map((line) => localizeLine(line, locale))
+        .join('\n')
 }
 
-function localizeLine(line: string): string {
+function localizeLine(line: string, locale: string): string {
     if (!line.startsWith('#')) return line
 
     const colonIndex = line.indexOf(':')
@@ -13,6 +17,22 @@ function localizeLine(line: string): string {
     const rest = colonIndex === -1 ? undefined : line.slice(colonIndex + 1)
 
     if (key === '##') return rest ?? ''
+
+    if (key === TextFunction.Localize) {
+        try {
+            const translations: unknown = JSON.parse(rest ?? '')
+            if (!translations || typeof translations !== 'object' || Array.isArray(translations))
+                return line
+
+            const entries = Object.entries(translations)
+            if (!entries.every(([, value]) => typeof value === 'string')) return line
+
+            return entries.find(([language]) => language === locale)?.[1] ?? entries[0]?.[1] ?? ''
+        } catch {
+            // Preserve incomplete or invalid JSON while the user is typing.
+            return line
+        }
+    }
 
     if (key === '##TIME_FULL' || key === '##TIME_RELATIVE') {
         const time = Number(rest)
@@ -28,7 +48,7 @@ function localizeLine(line: string): string {
 
     if (rest === undefined) return localized
 
-    const arg = localizeLine(rest)
+    const arg = localizeLine(rest, locale)
     return localized.includes('{0}') ? localized.replaceAll('{0}', arg) : localized + arg
 }
 

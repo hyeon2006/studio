@@ -47,7 +47,7 @@ const banner = computed({
 <template>
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="title" placeholder="Enter title..." validate />
+            <MyTextInput v-model="title" placeholder="Enter title..." validate localized />
         </MyField>
         <MyField title="Description">
             <MyTextArea v-model="description" placeholder="Enter description..." />
