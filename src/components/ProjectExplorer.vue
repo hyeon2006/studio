@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watchEffect } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import {
     type ExplorerItem,
     isOpened,
@@ -33,15 +33,19 @@ const isResizing = ref(false)
 const isDesktop = ref(window.innerWidth >= 640)
 const activeItem = ref<string>('')
 
-watchEffect(() => {
-    if (!resolveViewInfo(project.value, view.value)) return
+watch(
+    () => toKey(view.value),
+    () => {
+        if (!resolveViewInfo(project.value, view.value)) return
 
-    const path: string[] = []
-    for (const part of view.value) {
-        path.push(part)
-        open(path)
-    }
-})
+        const path: string[] = []
+        for (const part of view.value) {
+            path.push(part)
+            open(path)
+        }
+    },
+    { immediate: true },
+)
 
 function isPathCurrentView(path: string[]) {
     return (
@@ -164,8 +168,8 @@ function stopResize() {
                     :aria-level="item.level + 1"
                     :aria-expanded="item.hasChildren ? isOpened(item.path) : undefined"
                     @click="onClick(item)"
-                    @keydown.enter.prevent="onClick(item)"
-                    @keydown.space.prevent="onClick(item)"
+                    @keydown.enter.self.prevent="onClick(item)"
+                    @keydown.space.self.prevent="onClick(item)"
                 >
                     <div
                         v-if="isPathCurrentView(item.path)"

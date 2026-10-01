@@ -143,7 +143,7 @@ async function onCopySkinSprites({ project }: UseStateReturn, name: string) {
     await copy('skin-sprites', { sprites: spritesToCopy })
 }
 
-async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
+async function onPasteSkinSprites({ project, view }: UseStateReturn, name: string) {
     const skin = project.value.skins.get(name)
     if (!skin) throw new Error('Skin not found')
 
@@ -175,6 +175,7 @@ async function onPasteSkinSprites({ project }: UseStateReturn, name: string) {
 
     push({
         ...project.value,
+        view: view.value,
         skins,
     })
 

@@ -295,7 +295,7 @@ async function onCopyParticleSprites({ project }: UseStateReturn, name: string) 
     await copy('particle-sprites', { sprites: spritesToCopy })
 }
 
-async function onPasteParticleSprites({ project }: UseStateReturn, name: string) {
+async function onPasteParticleSprites({ project, view }: UseStateReturn, name: string) {
     const particle = project.value.particles.get(name)
     if (!particle) throw new Error('Particle not found')
 
@@ -336,6 +336,7 @@ async function onPasteParticleSprites({ project }: UseStateReturn, name: string)
 
     push({
         ...project.value,
+        view: view.value,
         particles,
     })
 
@@ -394,7 +395,7 @@ async function onCopyParticleEffects({ project }: UseStateReturn, name: string) 
     await copy('particle-effects', { effects: effectsToCopy }, particle)
 }
 
-async function onPasteParticleEffects({ project }: UseStateReturn, name: string) {
+async function onPasteParticleEffects({ project, view }: UseStateReturn, name: string) {
     const particle = project.value.particles.get(name)
     if (!particle) throw new Error('Particle not found')
 
@@ -428,6 +429,7 @@ async function onPasteParticleEffects({ project }: UseStateReturn, name: string)
 
     push({
         ...project.value,
+        view: view.value,
         particles,
     })
 
@@ -493,7 +495,7 @@ async function onCopyParticleEffectGroups(
 }
 
 async function onPasteParticleEffectGroups(
-    { project }: UseStateReturn,
+    { project, view }: UseStateReturn,
     name: string,
     effectName: string,
 ) {
@@ -531,6 +533,7 @@ async function onPasteParticleEffectGroups(
 
     push({
         ...project.value,
+        view: view.value,
         particles,
     })
 
