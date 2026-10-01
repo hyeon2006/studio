@@ -21,11 +21,63 @@ const emit = defineEmits<{
 const search = ref('')
 const selected = ref(new Set<string>())
 
+const searchTerms = computed(() =>
+    search.value
+        .split(/[,\r\n]+/)
+        .map((term) => term.trim().toLowerCase())
+        .filter(Boolean),
+)
+
 const filteredSprites = computed(() => {
-    if (!search.value) return props.data.sprites
-    const lower = search.value.toLowerCase()
-    return props.data.sprites.filter((s) => s.toLowerCase().includes(lower))
+    if (!searchTerms.value.length) return props.data.sprites
+
+    return props.data.sprites.filter((sprite) => {
+        const lower = sprite.toLowerCase()
+        return searchTerms.value.some((term) => lower.includes(term))
+    })
 })
+
+function selectSearchTerms(value: string) {
+    const names = new Map(props.data.sprites.map((sprite) => [sprite.toLowerCase(), sprite]))
+
+    for (const term of value.split(/[,\r\n]+/)) {
+        const name = names.get(term.trim().toLowerCase())
+        if (name) selected.value.add(name)
+    }
+
+    search.value = ''
+}
+
+function selectSanitizedPaste(value: string) {
+    const names = new Map(props.data.sprites.map((sprite) => [sprite.toLowerCase(), sprite]))
+    if (names.has(value.trim().toLowerCase())) return
+
+    for (const term of value.split(/\s+/)) {
+        const name = names.get(term.trim().toLowerCase())
+        if (name) selected.value.add(name)
+    }
+
+    search.value = ''
+}
+
+function onPaste(event: ClipboardEvent) {
+    const pasted = event.clipboardData?.getData('text')
+    if (!pasted || !/[,\r\n]/.test(pasted)) return
+
+    event.preventDefault()
+    selectSearchTerms(pasted)
+}
+
+function onInput(event: Event) {
+    const inputEvent = event as InputEvent
+    if (inputEvent.inputType !== 'insertFromPaste') return
+
+    const input = inputEvent.target as HTMLInputElement
+    if (!input.value || /[,\r\n]/.test(input.value)) return
+
+    // Some mobile browsers sanitize line breaks to spaces before exposing pasted input.
+    if (/\s/.test(input.value)) selectSanitizedPaste(input.value)
+}
 
 function toggle(name: string) {
     if (selected.value.has(name)) {
@@ -63,8 +115,17 @@ onMounted(async () => {
             <MyTextInput
                 id="sprite-search-input"
                 v-model="search"
-                placeholder="Search sprites..."
+                commit-on-comma
+                placeholder="Search or paste sprite names..."
+                @comma="selectSearchTerms(search)"
+                @enter="selectSearchTerms(search)"
+                @input="onInput"
+                @paste="onPaste"
             />
+
+            <div class="text-xs text-sonolus-ui-text-disabled">
+                Paste comma- or line-separated names to select them. Unknown names are ignored.
+            </div>
 
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="flex flex-wrap gap-2">

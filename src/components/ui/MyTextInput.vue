@@ -14,11 +14,13 @@ const props = defineProps<{
     validator?: Validator<string>
     errorMessage?: string
     autoFocus?: boolean
+    commitOnComma?: boolean
     suggestions?: { value: string; label?: string; hint?: string }[]
 }>()
 
 const emit = defineEmits<{
     'update:modelValue': [value: string]
+    comma: []
     enter: []
     escape: []
 }>()
@@ -110,6 +112,13 @@ function onEnter() {
     emit('enter')
 }
 
+function onKeyDown(event: KeyboardEvent) {
+    if (!props.commitOnComma || event.key !== ',') return
+
+    event.preventDefault()
+    emit('comma')
+}
+
 function onEscape() {
     if (showSuggestions.value) {
         isDismissed.value = true
@@ -150,6 +159,7 @@ async function clear() {
                     :title="resolvedErrorMessage"
                     @focus="onFocus()"
                     @blur="onBlur()"
+                    @keydown="onKeyDown($event)"
                     @keydown.enter="onEnter()"
                     @keydown.escape="onEscape()"
                     @keydown.down.prevent="moveHighlight(1)"
