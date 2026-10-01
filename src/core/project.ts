@@ -10,6 +10,7 @@ import {
     type Srl,
 } from '@sonolus/core'
 import JSZip from 'jszip'
+import { packLocalizedText } from './localization'
 import {
     addBackgroundToWhitelist,
     type Background,
@@ -164,6 +165,21 @@ export interface PackProcess {
 }
 
 export function packProject(project: Project, canvas: HTMLCanvasElement) {
+    const textFields = new Set(['title', 'subtitle', 'author', 'description'])
+    for (const key of ['title', 'description'] as const) {
+        packLocalizedText(project[key], `Project ${key}`)
+    }
+    for (const type of ['skins', 'backgrounds', 'effects', 'particles'] as const) {
+        for (const [name, item] of project[type]) {
+            for (const key of ['title', 'subtitle', 'author', 'description'] as const) {
+                packLocalizedText(item[key], `${type} "${name}" ${key}`)
+            }
+            item.tags.forEach((tag, i) =>
+                packLocalizedText(tag.title, `${type} "${name}" tag ${i + 1}`),
+            )
+        }
+    }
+
     const zip = new JSZip()
 
     const process: PackProcess = {
@@ -180,7 +196,14 @@ export function packProject(project: Project, canvas: HTMLCanvasElement) {
             add(path, data)
         },
         addJson(path, data) {
-            add(path, JSON.stringify(data))
+            add(
+                path,
+                JSON.stringify(data, (key, value: unknown) =>
+                    textFields.has(key) && typeof value === 'string'
+                        ? packLocalizedText(value)
+                        : value,
+                ),
+            )
         },
 
         async finish() {

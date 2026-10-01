@@ -14,6 +14,7 @@ const props = defineProps<{
     validator?: Validator<string>
     errorMessage?: string
     autoFocus?: boolean
+    ariaLabel?: string
 }>()
 
 const emit = defineEmits<{
@@ -141,6 +142,7 @@ function onEscape() {
                 :class="{ 'ring-1 ring-sonolus-warning': isError }"
                 :placeholder="placeholder"
                 :aria-invalid="isError"
+                :aria-label="ariaLabel"
                 :title="resolvedErrorMessage"
                 rows="4"
                 @focus="onFocus()"

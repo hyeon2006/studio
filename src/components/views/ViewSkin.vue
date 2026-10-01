@@ -17,7 +17,7 @@ import MyField from '../ui/MyField.vue'
 import MyImageInput from '../ui/MyImageInput.vue'
 import MySection from '../ui/MySection.vue'
 import MyTagsInput from '../ui/MyTagsInput.vue'
-import MyTextArea from '../ui/MyTextArea.vue'
+import MyLocalizedText from '../ui/MyLocalizedText.vue'
 import MyTextInput from '../ui/MyTextInput.vue'
 import MyToggle from '../ui/MyToggle.vue'
 
@@ -99,15 +99,10 @@ async function cropToPixelColumn(texture: string, anchor: HorizontalAnchor) {
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="v.title" placeholder="Enter skin title..." validate localized />
+            <MyLocalizedText v-model="v.title" placeholder="Enter skin title..." validate />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput
-                v-model="v.subtitle"
-                placeholder="Enter skin subtitle..."
-                validate
-                localized
-            />
+            <MyLocalizedText v-model="v.subtitle" placeholder="Enter skin subtitle..." validate />
         </MyField>
         <MyField title="Author">
             <MyTextInput v-model="v.author" placeholder="Enter skin author..." validate />
@@ -116,7 +111,12 @@ async function cropToPixelColumn(texture: string, anchor: HorizontalAnchor) {
             <MyTagsInput v-model="v.tags" />
         </MyField>
         <MyField title="Description">
-            <MyTextArea v-model="v.description" placeholder="Enter skin description..." validate />
+            <MyLocalizedText
+                multiline
+                v-model="v.description"
+                placeholder="Enter skin description..."
+                validate
+            />
         </MyField>
     </MySection>
 

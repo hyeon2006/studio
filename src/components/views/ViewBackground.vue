@@ -14,7 +14,7 @@ import MyNumberInput from '../ui/MyNumberInput.vue'
 import MyRangeInput from '../ui/MyRangeInput.vue'
 import MySection from '../ui/MySection.vue'
 import MyTagsInput from '../ui/MyTagsInput.vue'
-import MyTextArea from '../ui/MyTextArea.vue'
+import MyLocalizedText from '../ui/MyLocalizedText.vue'
 import MyTextInput from '../ui/MyTextInput.vue'
 import MyTextSelect from '../ui/MyTextSelect.vue'
 import MyToggle from '../ui/MyToggle.vue'
@@ -64,19 +64,13 @@ const scaleY = computed({
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput
-                v-model="v.title"
-                placeholder="Enter background title..."
-                validate
-                localized
-            />
+            <MyLocalizedText v-model="v.title" placeholder="Enter background title..." validate />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput
+            <MyLocalizedText
                 v-model="v.subtitle"
                 placeholder="Enter background subtitle..."
                 validate
-                localized
             />
         </MyField>
         <MyField title="Author">
@@ -86,7 +80,8 @@ const scaleY = computed({
             <MyTagsInput v-model="v.tags" />
         </MyField>
         <MyField title="Description">
-            <MyTextArea
+            <MyLocalizedText
+                multiline
                 v-model="v.description"
                 placeholder="Enter background description..."
                 validate

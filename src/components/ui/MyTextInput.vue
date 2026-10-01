@@ -20,6 +20,8 @@ const props = defineProps<{
     autoFocus?: boolean
     commitOnComma?: boolean
     localized?: boolean
+    hideHelp?: boolean
+    ariaLabel?: string
     suggestions?: { value: string; label?: string; hint?: string }[]
 }>()
 
@@ -182,6 +184,7 @@ async function clear() {
                     class="clickable h-full w-full flex-grow border-none pr-2 pl-8 text-center"
                     :placeholder="placeholder"
                     :aria-invalid="isError"
+                    :aria-label="ariaLabel"
                     :title="resolvedErrorMessage"
                     @focus="onFocus()"
                     @blur="onBlur()"
@@ -243,7 +246,7 @@ async function clear() {
         <div v-if="isError" class="mt-1 text-left text-xs text-sonolus-warning" role="alert">
             {{ resolvedErrorMessage }}
         </div>
-        <div v-if="localized" class="flex items-start gap-1">
+        <div v-if="localized && (previewText || !hideHelp)" class="flex items-start gap-1">
             <div
                 v-if="previewText"
                 class="min-w-0 flex-1 text-left text-xs whitespace-pre-line text-sonolus-ui-text-soften"
@@ -252,6 +255,7 @@ async function clear() {
             </div>
             <div v-else class="flex-1" />
             <button
+                v-if="!hideHelp"
                 class="transparent-clickable flex-none rounded-md p-1"
                 :class="{ 'bg-sonolus-ui-button-highlighted': isHelpOpened }"
                 title="Localized text help"

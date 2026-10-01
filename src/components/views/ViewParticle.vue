@@ -9,7 +9,7 @@ import MyField from '../ui/MyField.vue'
 import MyImageInput from '../ui/MyImageInput.vue'
 import MySection from '../ui/MySection.vue'
 import MyTagsInput from '../ui/MyTagsInput.vue'
-import MyTextArea from '../ui/MyTextArea.vue'
+import MyLocalizedText from '../ui/MyLocalizedText.vue'
 import MyTextInput from '../ui/MyTextInput.vue'
 import MyToggle from '../ui/MyToggle.vue'
 
@@ -32,19 +32,13 @@ const v = useView(props, 'particles')
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput
-                v-model="v.title"
-                placeholder="Enter particle title..."
-                validate
-                localized
-            />
+            <MyLocalizedText v-model="v.title" placeholder="Enter particle title..." validate />
         </MyField>
         <MyField title="Subtitle">
-            <MyTextInput
+            <MyLocalizedText
                 v-model="v.subtitle"
                 placeholder="Enter particle subtitle..."
                 validate
-                localized
             />
         </MyField>
         <MyField title="Author">
@@ -54,7 +48,8 @@ const v = useView(props, 'particles')
             <MyTagsInput v-model="v.tags" />
         </MyField>
         <MyField title="Description">
-            <MyTextArea
+            <MyLocalizedText
+                multiline
                 v-model="v.description"
                 placeholder="Enter particle description..."
                 validate

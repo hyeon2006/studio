@@ -5,6 +5,7 @@ import { show, useModal } from '../composables/modal'
 import { markSaved, push, redo, replace, undo, useState } from '../composables/state'
 import { toast } from '../composables/toast'
 import { newProject, type Project } from '../core/project'
+import { localizeText } from '../core/localization'
 import IconBox from '../icons/box-solid.svg?component'
 import IconList from '../icons/list-solid.svg?component'
 import ModalConfirmation from './modals/ModalConfirmation.vue'
@@ -318,7 +319,9 @@ function isPackageFile(file: File) {
 }
 
 function packageFileName() {
-    const title = project.value.title.trim().replace(/[\\/:*?"<>|]/g, '_')
+    const title = localizeText(project.value.title)
+        .trim()
+        .replace(/[\\/:*?"<>|]/g, '_')
     return `${title || 'project'}.scp`
 }
 
@@ -387,7 +390,7 @@ async function onSaveProjectAs() {
 }
 
 watchEffect(() => {
-    const title = project.value.title.trim()
+    const title = localizeText(project.value.title).trim()
     document.title =
         (isModified.value ? '● ' : '') + (title ? `${title} - Sonolus Studio` : 'Sonolus Studio')
 })

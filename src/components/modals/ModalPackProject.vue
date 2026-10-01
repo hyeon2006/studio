@@ -29,9 +29,8 @@ onMounted(async () => {
         await nextTick()
     }
 
-    const { tasks, finish } = packProject(props.data, el.value)
-
     try {
+        const { tasks, finish } = packProject(props.data, el.value)
         await runTasks(tasks)
         if (aborted.value) return
 

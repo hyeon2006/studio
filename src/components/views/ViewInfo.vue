@@ -4,8 +4,7 @@ import { push, useState } from '../../composables/state'
 import MyField from '../ui/MyField.vue'
 import MyImageInput from '../ui/MyImageInput.vue'
 import MySection from '../ui/MySection.vue'
-import MyTextArea from '../ui/MyTextArea.vue'
-import MyTextInput from '../ui/MyTextInput.vue'
+import MyLocalizedText from '../ui/MyLocalizedText.vue'
 
 defineProps<{ data: unknown }>()
 
@@ -47,10 +46,10 @@ const banner = computed({
 <template>
     <MySection header="Info">
         <MyField title="Title">
-            <MyTextInput v-model="title" placeholder="Enter title..." validate localized />
+            <MyLocalizedText v-model="title" placeholder="Enter title..." validate />
         </MyField>
         <MyField title="Description">
-            <MyTextArea v-model="description" placeholder="Enter description..." />
+            <MyLocalizedText multiline v-model="description" placeholder="Enter description..." />
         </MyField>
         <MyField title="Banner">
             <MyImageInput v-model="banner" fill />

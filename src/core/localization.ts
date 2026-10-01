@@ -1,6 +1,65 @@
 import { TextFunction } from '@sonolus/core'
 import { enTexts } from './text-en'
 
+export interface Translation {
+    locale: string
+    text: string
+}
+
+export function parseTranslations(text: string): Translation[] | undefined {
+    const prefix = `${TextFunction.Localize}:`
+    if (!text.startsWith(prefix)) return
+
+    try {
+        const translations: unknown = JSON.parse(text.slice(prefix.length))
+        if (!translations || typeof translations !== 'object' || Array.isArray(translations)) return
+
+        const entries = Object.entries(translations)
+        if (
+            !entries.length ||
+            !entries.every(([locale, value]) => locale && typeof value === 'string')
+        )
+            return
+
+        return entries.map(([locale, text]) => ({ locale, text }))
+    } catch {
+        // Keep malformed or mixed expressions available in the original text editor.
+        return
+    }
+}
+
+export function serializeTranslations(translations: Translation[]): string {
+    const english = translations.filter(({ locale }) => locale === 'en')
+    const others = translations.filter(({ locale }) => locale !== 'en')
+    return `${TextFunction.Localize}:${JSON.stringify(
+        Object.fromEntries([...english, ...others].map(({ locale, text }) => [locale, text])),
+    )}`
+}
+
+export function packLocalizedText(text: string, field = 'Localized text'): string {
+    if (parseTranslations(text)) return packLine(text)
+    return text.split('\n').map(packLine).join('\n')
+
+    function packLine(line: string): string {
+        if (!line.startsWith('#')) return line
+
+        const colon = line.indexOf(':')
+        const key = colon === -1 ? line : line.slice(0, colon)
+        if (key === TextFunction.Escape) return line
+
+        if (key === TextFunction.Localize) {
+            const translations = parseTranslations(line)
+            if (!translations) throw new Error(`${field}: invalid ##LOCALIZE translations.`)
+            if (!translations.some(({ locale, text }) => locale === 'en' && text.trim()))
+                throw new Error(`${field}: English (en) text is required to export.`)
+
+            return serializeTranslations(translations)
+        }
+
+        return colon === -1 ? line : `${key}:${packLine(line.slice(colon + 1))}`
+    }
+}
+
 // Standard text keys are previewed in English; custom translations use the requested locale.
 export function localizeText(text: string, locale = 'en') {
     return text

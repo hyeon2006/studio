@@ -6,8 +6,8 @@ import IconQuestion from '../../icons/question-circle-solid.svg?component'
 import IconTrash from '../../icons/trash-alt-solid.svg?component'
 import MyButton from './MyButton.vue'
 import MyLocalizationHint from './MyLocalizationHint.vue'
+import MyLocalizedText from './MyLocalizedText.vue'
 import MyTagIconSelect from './MyTagIconSelect.vue'
-import MyTextInput from './MyTextInput.vue'
 
 const props = defineProps<{
     modelValue: ProjectTag[]
@@ -42,16 +42,20 @@ function remove(index: number) {
 </script>
 
 <template>
-    <div class="flex flex-col gap-2">
-        <div v-for="(tag, i) in modelValue" :key="i" class="flex flex-col gap-1">
+    <div class="@container flex flex-col gap-2">
+        <div
+            v-for="(tag, i) in modelValue"
+            :key="i"
+            class="rounded-md border border-white/10 bg-white/5 p-2"
+        >
             <div
-                class="grid grid-cols-[minmax(0,1fr)_auto] gap-1 sm:grid-cols-[minmax(0,1fr)_11rem_auto]"
+                class="grid grid-cols-[minmax(0,1fr)_auto] gap-1 @min-[32rem]:grid-cols-[minmax(0,1fr)_11rem_auto]"
             >
-                <MyTextInput
-                    class="col-span-2 min-w-0 sm:col-span-1"
+                <MyLocalizedText
+                    class="col-span-2 min-w-0 @min-[32rem]:col-span-1"
                     :model-value="tag.title"
                     placeholder="Enter tag title or #..."
-                    localized
+                    hide-help
                     @update:model-value="update(i, { title: $event })"
                 />
                 <MyTagIconSelect
