@@ -1,5 +1,6 @@
 import { type Component, computed, markRaw, reactive, ref } from 'vue'
 import ModalTextInput from '../../components/modals/ModalTextInput.vue'
+import { moveMapItem, renameMapItem } from '../../core/order'
 import { type ProjectItemTypeOf } from '../../core/project'
 import { clone } from '../../core/utils'
 import IconScp from '../../icons/box-solid.svg?component'
@@ -28,6 +29,8 @@ export interface ExplorerItem {
     onDelete?: () => void
     onCopy?: () => void
     onPaste?: () => void
+    onMoveUp?: () => void
+    onMoveDown?: () => void
 }
 
 const openedPaths = reactive(new Map<string, true>())
@@ -52,6 +55,31 @@ export function useExplorer() {
         addBackgroundItems(state, items)
         addEffectItems(state, items)
         addParticleItems(state, items)
+
+        for (const item of items) {
+            if (item.path.length !== 2) continue
+            const [type, name] = item.path
+            if (
+                type !== 'skins' &&
+                type !== 'backgrounds' &&
+                type !== 'effects' &&
+                type !== 'particles'
+            )
+                continue
+
+            const names = [...state.project.value[type].keys()]
+            const index = names.indexOf(name!)
+            const move = (offset: -1 | 1) => {
+                const resources = moveMapItem(
+                    new Map<string, unknown>(state.project.value[type]),
+                    name!,
+                    offset,
+                )
+                push({ ...state.project.value, view: state.view.value, [type]: resources })
+            }
+            if (index > 0) item.onMoveUp = () => move(-1)
+            if (index >= 0 && index < names.length - 1) item.onMoveDown = () => move(1)
+        }
 
         const query = searchQuery.value.trim().toLowerCase()
         if (!query) return items
@@ -180,10 +208,7 @@ export async function onRename<T>(
     const newName = rawNewName?.trim()
     if (!newName) return
 
-    const items = new Map(project.value[type] as never)
-    const oldItem = items.get(oldName)
-    items.delete(oldName)
-    items.set(newName, oldItem as never)
+    const items = renameMapItem(new Map(project.value[type] as never), oldName, newName)
 
     push({
         ...project.value,

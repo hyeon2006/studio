@@ -238,7 +238,13 @@ function stopResize() {
                                 <IconTrash class="icon" />
                             </button>
                             <button
-                                v-if="item.onClone || item.onCopy || item.onPaste"
+                                v-if="
+                                    item.onClone ||
+                                    item.onCopy ||
+                                    item.onPaste ||
+                                    item.onMoveUp ||
+                                    item.onMoveDown
+                                "
                                 class="h-full px-2"
                                 :title="`More actions for ${item.title}`"
                                 :aria-label="`More actions for ${item.title}`"
@@ -249,6 +255,24 @@ function stopResize() {
                             </button>
                         </template>
                         <template v-else>
+                            <button
+                                v-if="item.onMoveUp"
+                                class="h-full px-2"
+                                :title="`Move ${item.title} up in saved order`"
+                                :aria-label="`Move ${item.title} up in saved order`"
+                                @click.stop="item.onMoveUp?.()"
+                            >
+                                <IconAngleDown class="icon rotate-180" />
+                            </button>
+                            <button
+                                v-if="item.onMoveDown"
+                                class="h-full px-2"
+                                :title="`Move ${item.title} down in saved order`"
+                                :aria-label="`Move ${item.title} down in saved order`"
+                                @click.stop="item.onMoveDown?.()"
+                            >
+                                <IconAngleDown class="icon" />
+                            </button>
                             <button
                                 v-if="item.onClone"
                                 class="h-full px-2"
