@@ -23,6 +23,7 @@ const emit = defineEmits<{
     comma: []
     enter: []
     escape: []
+    paste: [event: ClipboardEvent]
 }>()
 
 const el = ref<HTMLInputElement>()
@@ -164,6 +165,7 @@ async function clear() {
                     @keydown.escape="onEscape()"
                     @keydown.down.prevent="moveHighlight(1)"
                     @keydown.up.prevent="moveHighlight(-1)"
+                    @paste="emit('paste', $event)"
                 />
                 <IconKeyboard class="icon pointer-events-none absolute top-2 left-2" />
                 <button
