@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Component, computed, nextTick, onMounted, ref } from 'vue'
+import { type Component, computed, ref } from 'vue'
 import IconCheck from '../../icons/check-solid.svg?component'
 import IconTimes from '../../icons/times-solid.svg?component'
 import MyButton from '../ui/MyButton.vue' //
@@ -79,19 +79,14 @@ function onSubmit() {
 function onCancel() {
     emit('close')
 }
-
-onMounted(async () => {
-    await nextTick()
-    document.getElementById('sprite-search-input')?.focus()
-})
 </script>
 
 <template>
     <ModalBase :icon="props.data.icon" :title="props.data.title">
         <div class="flex flex-col gap-2 p-4 pb-0">
             <MyTextInput
-                id="sprite-search-input"
                 v-model="search"
+                auto-focus
                 commit-on-comma
                 placeholder="Search or paste sprite names..."
                 @comma="selectSearchTerms(search)"
