@@ -11,6 +11,7 @@ const props = defineProps<{
         icon: Component
         title: string
         sprites: string[]
+        submitText?: string
     }
 }>()
 
@@ -150,7 +151,7 @@ function onCancel() {
             <MyButton :icon="IconTimes" text="Cancel" @click="onCancel" />
             <MyButton
                 :icon="IconCheck"
-                text="Copy Selected"
+                :text="props.data.submitText ?? 'Copy Selected'"
                 :disabled="selected.size === 0"
                 type="submit"
                 @click="onSubmit"
