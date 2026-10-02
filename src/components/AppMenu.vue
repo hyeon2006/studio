@@ -96,6 +96,7 @@ async function onNewProject() {
 
     replace(newProject())
     fileHandle.value = undefined
+    fileName.value = undefined
 }
 
 const el = ref<HTMLInputElement>()
@@ -110,7 +111,7 @@ function onFileInput() {
     el.value.value = ''
 
     if (!isPackageFile(file)) {
-        toast('Only .scp packages can be opened.', 'error')
+        toast('Only .scp or .zip packages can be opened.', 'error')
         return
     }
 
@@ -132,6 +133,7 @@ async function unpackAndReplace(file: File, handle?: FileSystemFileHandle) {
 
     replace(selectedProject)
     fileHandle.value = handle
+    fileName.value = file.name
 }
 
 async function onOpenProject() {
@@ -210,7 +212,7 @@ function onDrop(e: DragEvent) {
 
 async function onDropFile(file: File, handlePromise?: Promise<FileSystemHandle | null>) {
     if (!isPackageFile(file)) {
-        toast('Only .scp packages can be opened.', 'error')
+        toast('Only .scp or .zip packages can be opened.', 'error')
         return
     }
 
@@ -305,17 +307,22 @@ function onImportProject() {
 }
 
 const fileHandle = ref<FileSystemFileHandle>()
+const fileName = ref<string>()
 
 const packageFileTypes = [
     {
         description: 'Sonolus Collection Package',
-        accept: { 'application/octet-stream': ['.scp'] },
+        accept: {
+            'application/octet-stream': ['.scp'],
+            'application/zip': ['.zip'],
+        },
     },
 ]
-const packageFileAccept = '.scp,application/octet-stream'
+const packageFileAccept =
+    '.scp,.zip,application/octet-stream,application/zip,application/x-zip-compressed'
 
 function isPackageFile(file: File) {
-    return file.name.toLowerCase().endsWith('.scp')
+    return /\.(scp|zip)$/i.test(file.name)
 }
 
 function packageFileName() {
@@ -333,60 +340,59 @@ async function writeToHandle(handle: FileSystemFileHandle, blob: Blob) {
     toast(`Saved to ${handle.name}`, 'success')
 }
 
-async function saveBlobAs(blob: Blob) {
-    if (!window.showSaveFilePicker) {
-        saveAs(blob, packageFileName())
-        toast(`Download started: ${packageFileName()}`, 'success')
-        return true
-    }
-
-    try {
-        const handle = await window.showSaveFilePicker({
-            suggestedName: packageFileName(),
-            types: packageFileTypes,
-        })
-
-        await writeToHandle(handle, blob)
-        fileHandle.value = handle
-        return true
-    } catch (err) {
-        if ((err as Error).name === 'AbortError') return false
-
-        console.error(err)
-        saveAs(blob, packageFileName())
-        toast(`Download started: ${packageFileName()}`, 'success')
-        return true
-    }
+function onSaveProject() {
+    return saveProject(false)
 }
 
-async function onSaveProject() {
-    const result: Blob | undefined = await show(ModalPackProject, project.value, {
-        dismissible: false,
-    })
-    if (!result) return
+function onSaveProjectAs() {
+    return saveProject(true)
+}
 
-    if (fileHandle.value) {
+async function saveProject(saveAsNewFile: boolean) {
+    const name = (!saveAsNewFile && fileName.value) || packageFileName()
+    let handle = saveAsNewFile ? undefined : fileHandle.value
+
+    // Request the destination while the menu click still grants user activation.
+    if (!handle && window.showSaveFilePicker) {
         try {
-            await writeToHandle(fileHandle.value, result)
-            markSaved()
-            return
+            handle = await window.showSaveFilePicker({
+                suggestedName: name,
+                types: packageFileTypes,
+            })
         } catch (err) {
             if ((err as Error).name === 'AbortError') return
 
             console.error(err)
+            toast('Could not select a save destination. Please try again.', 'error')
+            return
         }
     }
 
-    if (await saveBlobAs(result)) markSaved()
-}
-
-async function onSaveProjectAs() {
     const result: Blob | undefined = await show(ModalPackProject, project.value, {
         dismissible: false,
     })
     if (!result) return
 
-    if (await saveBlobAs(result)) markSaved()
+    if (handle) {
+        try {
+            await writeToHandle(handle, result)
+            fileHandle.value = handle
+            fileName.value = handle.name
+        } catch (err) {
+            if ((err as Error).name === 'AbortError') return
+
+            console.error(err)
+            toast('Could not save the file. Please try Save As.', 'error')
+            return
+        }
+    } else {
+        saveAs(result, name)
+        fileHandle.value = undefined
+        fileName.value = name
+        toast(`Download started: ${name}. Replace the original file manually if needed.`, 'success')
+    }
+
+    markSaved()
 }
 
 watchEffect(() => {
@@ -526,7 +532,13 @@ function onKeyDown(e: KeyboardEvent) {
 
     <div v-if="openedIndex !== undefined" class="fixed z-30 h-full w-full" @click="close()" />
 
-    <input ref="el" class="hidden" type="file" :accept="packageFileAccept" @input="onFileInput()" />
+    <input
+        ref="el"
+        class="hidden"
+        type="file"
+        :accept="packageFileAccept"
+        @change="onFileInput()"
+    />
 
     <div
         v-if="isDragOver"

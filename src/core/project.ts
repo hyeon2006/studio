@@ -210,6 +210,7 @@ export function packProject(project: Project, canvas: HTMLCanvasElement) {
             return await zip.generateAsync({
                 type: 'blob',
                 compression: 'DEFLATE',
+                mimeType: 'application/octet-stream',
             })
         },
     }
