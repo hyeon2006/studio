@@ -1,4 +1,5 @@
 import { type Component, computed, markRaw, reactive, ref } from 'vue'
+import ModalSelectSprites from '../../components/modals/ModalSelectSprites.vue'
 import ModalTextInput from '../../components/modals/ModalTextInput.vue'
 import { moveMapItem, renameMapItem } from '../../core/order'
 import { type ProjectItemTypeOf } from '../../core/project'
@@ -7,8 +8,10 @@ import IconScp from '../../icons/box-solid.svg?component'
 import IconClone from '../../icons/clone-solid.svg?component'
 import IconEdit from '../../icons/edit-solid.svg?component'
 import IconPlus from '../../icons/plus-solid.svg?component'
+import { useClipboard } from '../clipboard'
 import { show } from '../modal'
 import { push, type UseStateReturn, useState } from '../state'
+import { toast } from '../toast'
 import { addBackgroundItems } from './backgrounds'
 import { addEffectItems } from './effects'
 import { addParticleItems } from './particles'
@@ -126,6 +129,46 @@ export function toggle(path: string[]) {
     } else {
         open(path)
     }
+}
+
+export async function onCopyResources<T>(
+    { project }: UseStateReturn,
+    type: ProjectItemTypeOf<T>,
+    itemType: string,
+) {
+    const resources = new Map<string, T>(project.value[type] as never)
+    const selectedNames = await show(ModalSelectSprites, {
+        icon: markRaw(IconClone),
+        title: `Copy ${itemType}s`,
+        sprites: [...resources.keys()],
+        itemType: itemType.toLowerCase(),
+    })
+    if (!selectedNames?.length) return
+
+    const selected = new Set(selectedNames)
+    const { copy } = useClipboard()
+    await copy(type, { items: [...resources].filter(([name]) => selected.has(name)) })
+}
+
+export async function onPasteResources<T>(
+    { project, view }: UseStateReturn,
+    type: ProjectItemTypeOf<T>,
+) {
+    const { read } = useClipboard()
+    const data = (await read(type)) as { items: [string, T][] } | null
+    if (!data || !Array.isArray(data.items)) {
+        toast(`Clipboard does not contain ${type}`, 'error')
+        return
+    }
+    if (!data.items.length) return
+
+    const resources = new Map<string, T>(project.value[type] as never)
+    for (const [name, item] of data.items) {
+        resources.set(name, clone(item))
+    }
+
+    push({ ...project.value, view: view.value, [type]: resources })
+    toast(`Pasted ${data.items.length} ${type}`, 'success')
 }
 
 export async function onNew<T>(

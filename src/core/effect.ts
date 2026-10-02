@@ -101,7 +101,7 @@ function packEffect(
     const effectAudio = new JSZip()
 
     tasks.push({
-        description: `Packing SFX "${name}" thumbnail...`,
+        description: `Packing effect "${name}" thumbnail...`,
         async execute() {
             const { hash, data } = await packRaw(effect.thumbnail)
 
@@ -120,7 +120,7 @@ function packEffect(
             }
 
             tasks.push({
-                description: `Packing SFX "${name}" clip "${formatEffectClipName(clipName)}"...`,
+                description: `Packing effect "${name}" clip "${formatEffectClipName(clipName)}"...`,
                 async execute() {
                     const { data } = await packRaw(url)
 
@@ -133,7 +133,7 @@ function packEffect(
     }
 
     tasks.push({
-        description: `Packing SFX "${name}" audio...`,
+        description: `Packing effect "${name}" audio...`,
         async execute() {
             const { hash, data } = await packArrayBuffer(
                 await effectAudio.generateAsync({
@@ -150,7 +150,7 @@ function packEffect(
     })
 
     tasks.push({
-        description: `Packing SFX "${name}" data...`,
+        description: `Packing effect "${name}" data...`,
         async execute() {
             const { hash, data } = await packJson(effectData)
 
@@ -162,7 +162,7 @@ function packEffect(
     })
 
     tasks.push({
-        description: `Generating SFX "${name}" details...`,
+        description: `Generating effect "${name}" details...`,
         execute() {
             addJson<ServerItemDetails<EffectItem>>(`/sonolus/effects/${name}`, {
                 item,
@@ -180,7 +180,7 @@ export function unpackEffects(process: UnpackProcess) {
     const { tasks, getJsonOptional } = process
 
     tasks.push({
-        description: 'Loading SFX list...',
+        description: 'Loading effect list...',
         async execute() {
             const list = await getJsonOptional<ServerItemList<EffectItem>>('/sonolus/effects/list')
             if (!list) return
@@ -194,7 +194,7 @@ export function unpackEffects(process: UnpackProcess) {
 
 function unpackEffect({ project, tasks, getRaw, getJson }: UnpackProcess, name: string) {
     tasks.push({
-        description: `Loading SFX "${name}" details...`,
+        description: `Loading effect "${name}" details...`,
         async execute() {
             const details = await getJson<ServerItemDetails<EffectItem>>(`/sonolus/effects/${name}`)
 
@@ -208,27 +208,27 @@ function unpackEffect({ project, tasks, getRaw, getJson }: UnpackProcess, name: 
             let effectAudio: JSZip
 
             tasks.push({
-                description: `Unpacking SFX "${name}" thumbnail...`,
+                description: `Unpacking effect "${name}" thumbnail...`,
                 async execute() {
                     item.thumbnail = load(await getRaw(details.item.thumbnail.url))
                 },
             })
 
             tasks.push({
-                description: `Unpacking SFX "${name}" audio...`,
+                description: `Unpacking effect "${name}" audio...`,
                 async execute() {
                     effectAudio = await JSZip.loadAsync(await getRaw(details.item.audio.url))
                 },
             })
 
             tasks.push({
-                description: `Unpacking SFX "${name}" data...`,
+                description: `Unpacking effect "${name}" data...`,
                 async execute() {
                     const data = await unpackJson<EffectData>(await getRaw(details.item.data.url))
 
                     for (const { name: clipName, filename } of data.clips) {
                         tasks.push({
-                            description: `Unpacking SFX "${name}" clip "${formatEffectClipName(
+                            description: `Unpacking effect "${name}" clip "${formatEffectClipName(
                                 clipName,
                             )}"...`,
                             async execute() {

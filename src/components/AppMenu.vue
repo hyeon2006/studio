@@ -244,7 +244,7 @@ function onImportProject() {
         const conflicts = [
             collectConflicts('Skins', project.value.skins, selectedProject.skins),
             collectConflicts('Backgrounds', project.value.backgrounds, selectedProject.backgrounds),
-            collectConflicts('SFX', project.value.effects, selectedProject.effects),
+            collectConflicts('Effect', project.value.effects, selectedProject.effects),
             collectConflicts('Particles', project.value.particles, selectedProject.particles),
         ].filter(({ names }) => names.length)
 

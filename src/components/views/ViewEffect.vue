@@ -31,13 +31,13 @@ const v = useView(props, 'effects')
 
     <MySection header="Info">
         <MyField title="Title">
-            <MyLocalizedText v-model="v.title" placeholder="Enter SFX title..." validate />
+            <MyLocalizedText v-model="v.title" placeholder="Enter effect title..." validate />
         </MyField>
         <MyField title="Subtitle">
-            <MyLocalizedText v-model="v.subtitle" placeholder="Enter SFX subtitle..." validate />
+            <MyLocalizedText v-model="v.subtitle" placeholder="Enter effect subtitle..." validate />
         </MyField>
         <MyField title="Author">
-            <MyTextInput v-model="v.author" placeholder="Enter SFX author..." validate />
+            <MyTextInput v-model="v.author" placeholder="Enter effect author..." validate />
         </MyField>
         <MyField title="Tags">
             <MyTagsInput v-model="v.tags" />
@@ -46,7 +46,7 @@ const v = useView(props, 'effects')
             <MyLocalizedText
                 multiline
                 v-model="v.description"
-                placeholder="Enter SFX description..."
+                placeholder="Enter effect description..."
                 validate
             />
         </MyField>

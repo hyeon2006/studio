@@ -12,6 +12,7 @@ const props = defineProps<{
         title: string
         sprites: string[]
         submitText?: string
+        itemType?: string
     }
 }>()
 
@@ -21,6 +22,7 @@ const emit = defineEmits<{
 
 const search = ref('')
 const selected = ref(new Set<string>())
+const itemType = computed(() => props.data.itemType ?? 'sprite')
 
 const searchTerms = computed(() =>
     search.value
@@ -89,7 +91,7 @@ function onCancel() {
                 v-model="search"
                 auto-focus
                 commit-on-comma
-                placeholder="Search or paste sprite names..."
+                :placeholder="`Search or paste ${itemType} names...`"
                 @comma="selectSearchTerms(search)"
                 @enter="selectSearchTerms(search)"
                 @paste="onPaste"
@@ -143,7 +145,7 @@ function onCancel() {
                 v-if="filteredSprites.length === 0"
                 class="py-4 text-center text-sonolus-ui-text-disabled"
             >
-                No sprites found
+                No {{ itemType }}s found
             </div>
         </div>
 
