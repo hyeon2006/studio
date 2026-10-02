@@ -52,8 +52,8 @@ const rectTransformed = computed<Rect>(() => {
 const imageInfo = computedAsync(() => getImageInfo(props.sprite.texture))
 
 const imageBuffer = computed(() => {
-    if (!imageInfo.value) return
-    if (!elBuffer.value) return
+    if (!imageInfo.value) return undefined
+    if (!elBuffer.value) return undefined
 
     return getImageBuffer(imageInfo.value, elBuffer.value)
 })

@@ -30,11 +30,11 @@ const value = computed({
 })
 
 const rgba = computed(() => {
-    if (!(props.alpha ? [5, 9] : [4, 7]).includes(props.modelValue.length)) return
-    if (!props.modelValue.startsWith('#')) return
+    if (!(props.alpha ? [5, 9] : [4, 7]).includes(props.modelValue.length)) return undefined
+    if (!props.modelValue.startsWith('#')) return undefined
 
     const value = props.modelValue.slice(1).toLowerCase()
-    if (!value.split('').every((c) => '0123456789abcdef'.includes(c))) return
+    if (!value.split('').every((c) => '0123456789abcdef'.includes(c))) return undefined
 
     const rgb =
         value.length === (props.alpha ? 4 : 3)

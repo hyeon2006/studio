@@ -421,7 +421,7 @@ function packParticle(
 
             ctx.clearRect(0, 0, width, height)
 
-            particleData.sprites = new Array(particle.data.sprites.length)
+            particleData.sprites = []
 
             const layoutsByName = new Map(layouts.map((layout) => [layout.name, layout]))
             const spritesById = new Map(particle.data.sprites.map((sprite) => [sprite.id, sprite]))
