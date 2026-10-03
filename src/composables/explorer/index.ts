@@ -39,11 +39,12 @@ export interface ExplorerItem {
 const openedPaths = reactive(new Map<string, true>())
 
 export const searchQuery = ref('')
+const isSearching = computed(() => !!searchQuery.value.trim())
 
 export function useExplorer() {
     const state = useState()
 
-    const tree = computed(() => {
+    const allItems = computed(() => {
         const items: ExplorerItem[] = [
             {
                 level: 0,
@@ -59,6 +60,7 @@ export function useExplorer() {
         addEffectItems(state, items)
         addParticleItems(state, items)
 
+        const indexesByType = new Map<string, Map<string, number>>()
         for (const item of items) {
             if (item.path.length !== 2) continue
             const [type, name] = item.path
@@ -70,8 +72,12 @@ export function useExplorer() {
             )
                 continue
 
-            const names = [...state.project.value[type].keys()]
-            const index = names.indexOf(name!)
+            let indexes = indexesByType.get(type)
+            if (!indexes) {
+                indexes = new Map([...state.project.value[type].keys()].map((key, i) => [key, i]))
+                indexesByType.set(type, indexes)
+            }
+            const index = indexes.get(name!) ?? -1
             const move = (offset: -1 | 1) => {
                 const resources = moveMapItem(
                     new Map<string, unknown>(state.project.value[type]),
@@ -81,9 +87,13 @@ export function useExplorer() {
                 push({ ...state.project.value, view: state.view.value, [type]: resources })
             }
             if (index > 0) item.onMoveUp = () => move(-1)
-            if (index >= 0 && index < names.length - 1) item.onMoveDown = () => move(1)
+            if (index >= 0 && index < state.project.value[type].size - 1)
+                item.onMoveDown = () => move(1)
         }
-
+        return items
+    })
+    const tree = computed(() => {
+        const items = allItems.value
         const query = searchQuery.value.trim().toLowerCase()
         if (!query) return items
 
@@ -109,7 +119,7 @@ export function toKey(path: string[]) {
 }
 
 export function isOpened(path: string[]) {
-    if (searchQuery.value.trim()) return true
+    if (isSearching.value) return true
 
     const key = path.join('/')
     return openedPaths.has(key)

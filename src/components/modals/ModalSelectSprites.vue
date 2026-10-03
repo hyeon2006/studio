@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { type Component, computed, ref } from 'vue'
+import { useVirtualList } from '@vueuse/core'
+import { type Component, computed, toRef, watch } from 'vue'
+import { useSpriteSelection } from '../../composables/sprite-selection'
 import IconCheck from '../../icons/check-solid.svg?component'
 import IconTimes from '../../icons/times-solid.svg?component'
 import MyButton from '../ui/MyButton.vue' //
@@ -20,36 +22,14 @@ const emit = defineEmits<{
     close: [result?: string[]]
 }>()
 
-const search = ref('')
-const selected = ref(new Set<string>())
+const { search, selected, filteredSprites, toggle, selectAll, deselectAll, selectSearchTerms } =
+    useSpriteSelection(toRef(() => props.data.sprites))
 const itemType = computed(() => props.data.itemType ?? 'sprite')
-
-const searchTerms = computed(() =>
-    search.value
-        .split(/[,\r\n]+/)
-        .map((term) => term.trim().toLowerCase())
-        .filter(Boolean),
-)
-
-const filteredSprites = computed(() => {
-    if (!searchTerms.value.length) return props.data.sprites
-
-    return props.data.sprites.filter((sprite) => {
-        const lower = sprite.toLowerCase()
-        return searchTerms.value.some((term) => lower.includes(term))
-    })
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(filteredSprites, {
+    itemHeight: 40,
+    overscan: 8,
 })
-
-function selectSearchTerms(value: string) {
-    const names = new Map(props.data.sprites.map((sprite) => [sprite.toLowerCase(), sprite]))
-
-    for (const term of value.split(/[,\r\n]+/)) {
-        const name = names.get(term.trim().toLowerCase())
-        if (name) selected.value.add(name)
-    }
-
-    search.value = ''
-}
+watch(filteredSprites, () => scrollTo(0), { flush: 'post' })
 
 function onPaste(event: ClipboardEvent) {
     const pasted = event.clipboardData?.getData('text')
@@ -57,22 +37,6 @@ function onPaste(event: ClipboardEvent) {
 
     event.preventDefault()
     selectSearchTerms(pasted)
-}
-
-function toggle(name: string) {
-    if (selected.value.has(name)) {
-        selected.value.delete(name)
-    } else {
-        selected.value.add(name)
-    }
-}
-
-function selectAll() {
-    filteredSprites.value.forEach((s) => selected.value.add(s))
-}
-
-function deselectAll() {
-    filteredSprites.value.forEach((s) => selected.value.delete(s))
 }
 
 function onSubmit() {
@@ -85,7 +49,11 @@ function onCancel() {
 </script>
 
 <template>
-    <ModalBase :icon="props.data.icon" :title="props.data.title">
+    <ModalBase
+        class="max-h-[calc(100dvh-2rem)] overflow-y-auto"
+        :icon="props.data.icon"
+        :title="props.data.title"
+    >
         <div class="flex flex-col gap-2 p-4 pb-0">
             <MyTextInput
                 v-model="search"
@@ -122,24 +90,29 @@ function onCancel() {
             </div>
         </div>
 
-        <div class="scrollbar h-64 overflow-y-auto px-4 py-2">
-            <div
-                v-for="name in filteredSprites"
-                :key="name"
-                class="hover:bg-sonolus-ui-button-hover flex cursor-pointer items-center gap-2 p-2 transition-colors select-none"
-                :class="{ 'bg-sonolus-ui-button-active': selected.has(name) }"
-                @click="toggle(name)"
-            >
-                <div
-                    class="flex h-4 w-4 flex-none items-center justify-center border border-sonolus-ui-text-normal"
-                    :class="{
-                        'border-sonolus-warning bg-sonolus-warning text-sonolus-main':
-                            selected.has(name),
-                    }"
+        <div v-bind="containerProps" class="scrollbar h-64 px-4">
+            <div v-bind="wrapperProps">
+                <button
+                    v-for="{ data: name } in list"
+                    :key="name"
+                    type="button"
+                    class="hover:bg-sonolus-ui-button-hover flex h-10 w-full items-center gap-2 p-2 text-left transition-colors select-none"
+                    :class="{ 'bg-sonolus-ui-button-active': selected.has(name) }"
+                    role="checkbox"
+                    :aria-checked="selected.has(name)"
+                    @click="toggle(name)"
                 >
-                    <IconCheck v-if="selected.has(name)" class="h-3 w-3" />
-                </div>
-                <div class="truncate">{{ name }}</div>
+                    <div
+                        class="flex h-4 w-4 flex-none items-center justify-center border border-sonolus-ui-text-normal"
+                        :class="{
+                            'border-sonolus-warning bg-sonolus-warning text-sonolus-main':
+                                selected.has(name),
+                        }"
+                    >
+                        <IconCheck v-if="selected.has(name)" class="h-3 w-3" />
+                    </div>
+                    <div class="truncate">{{ name }}</div>
+                </button>
             </div>
             <div
                 v-if="filteredSprites.length === 0"
