@@ -4,6 +4,7 @@ import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { show, useModal } from '../composables/modal'
 import { markSaved, push, redo, replace, undo, useState } from '../composables/state'
 import { toast } from '../composables/toast'
+import { resizeSelectedSkins } from '../composables/skin-resize'
 import { newProject, type Project } from '../core/project'
 import { localizeText } from '../core/localization'
 import IconBox from '../icons/box-solid.svg?component'
@@ -81,6 +82,15 @@ const menus = computed(() => [
                 enabled: canRedo.value,
                 key: 'y',
                 command: redo,
+            },
+            null,
+            {
+                title: 'Resize Skins',
+                enabled: project.value.skins.size > 0,
+                key: 'shift+r',
+                command: () => {
+                    void resizeSelectedSkins()
+                },
             },
         ],
     },

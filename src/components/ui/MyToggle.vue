@@ -7,6 +7,7 @@ const props = defineProps<{
     modelValue: boolean
     defaultValue: boolean
     autoFocus?: boolean
+    ariaLabel?: string
 }>()
 
 const emit = defineEmits<{
@@ -44,7 +45,7 @@ function reset() {
             role="switch"
             :aria-checked="value"
             :title="value ? 'On' : 'Off'"
-            :aria-label="value ? 'On' : 'Off'"
+            :aria-label="ariaLabel ?? (value ? 'On' : 'Off')"
             @click="value = !value"
         >
             <div

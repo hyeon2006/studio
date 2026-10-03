@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:skin-resize": "node --test --test-isolation=none scripts/skin-resize.test.mjs",
     "generate:tag-icons": "node scripts/generate-tag-icons.mjs",
     "check-type": "vue-tsc --build --force",
     "check-lint": "oxlint src",

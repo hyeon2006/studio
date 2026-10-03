@@ -4,6 +4,8 @@ import { useClipboard } from '../../composables/clipboard'
 import { show } from '../../composables/modal'
 import { toast } from '../../composables/toast'
 import { useView } from '../../composables/view'
+import { useState } from '../../composables/state'
+import { resizeSelectedSkinSprites } from '../../composables/skin-resize'
 import { load } from '../../core/storage'
 import { type Skin } from '../../core/skin'
 import { getBlob, getImageInfo } from '../../core/utils'
@@ -28,6 +30,7 @@ const props = defineProps<{
 const { copy, paste } = useClipboard()
 
 const v = useView(props, 'skins')
+const { view } = useState()
 
 type HorizontalAnchor = 'left' | 'center' | 'right'
 
@@ -133,6 +136,13 @@ async function cropToPixelColumn(texture: string, anchor: HorizontalAnchor) {
     </MySection>
 
     <MySection header="Sprite Tools">
+        <MyButton
+            class="mb-2"
+            :icon="IconVectorSquare"
+            text="Resize Images"
+            :disabled="v.data.sprites.length === 0"
+            @click="resizeSelectedSkinSprites(view[1]!)"
+        />
         <MyButton
             :icon="IconVectorSquare"
             text="Reduce Widths to 1 px"
