@@ -83,6 +83,7 @@ test('skin image resizing', async (t) => {
         ['small', [100, 50]],
     ])
     const draws = []
+    const canvases = []
     globalThis.Image = class {
         set src(value) {
             queueMicrotask(() => {
@@ -99,6 +100,7 @@ test('skin image resizing', async (t) => {
             const canvas = {
                 getContext() {
                     return {
+                        clearRect() {},
                         drawImage() {
                             draws.push({
                                 width: canvas.width,
@@ -112,6 +114,7 @@ test('skin image resizing', async (t) => {
                     callback(new Blob([JSON.stringify([canvas.width, canvas.height])], { type }))
                 },
             }
+            canvases.push(canvas)
             return canvas
         },
     }
@@ -131,6 +134,7 @@ test('skin image resizing', async (t) => {
         'batch resizing handles multiple skins, counts skips, reuses textures, and leaves originals intact',
         async () => {
             draws.length = 0
+            canvases.length = 0
             const source = new Map([
                 [
                     'first',
@@ -148,6 +152,9 @@ test('skin image resizing', async (t) => {
                 (...args) => progress.push(args),
             )
             assert.equal(result.resized, 3)
+            assert.equal(canvases.length, 1)
+            assert.equal(canvases[0].width, 0)
+            assert.equal(canvases[0].height, 0)
             assert.equal(result.skipped, 2)
             assert.deepEqual(progress.at(-1), [5, 5])
             assert.deepEqual(draws, [
@@ -224,4 +231,72 @@ test('skin image resizing', async (t) => {
             assert.equal(project.value.skins.get('first').data.sprites[0].texture, texture)
         },
     )
+
+    await t.test(
+        'cancellation stops the batch without registering textures or changing history',
+        async (t) => {
+            const controller = new AbortController()
+            const source = new Map([
+                ['first', skin([sprite('one', 'wide'), sprite('two', 'tall')])],
+            ])
+            const createObjectURL = t.mock.method(URL, 'createObjectURL', URL.createObjectURL)
+            const before = JSON.stringify([...source])
+            canvases.length = 0
+            await assert.rejects(
+                resizeSkinTextures(
+                    source,
+                    ['first'],
+                    pixels(200),
+                    undefined,
+                    (done) => {
+                        if (done === 1) controller.abort()
+                    },
+                    controller.signal,
+                ),
+                { name: 'AbortError' },
+            )
+            assert.equal(createObjectURL.mock.callCount(), 0)
+            assert.equal(JSON.stringify([...source]), before)
+            assert.equal(canvases[0].width, 0)
+            assert.equal(canvases[0].height, 0)
+
+            const alreadyAborted = new AbortController()
+            alreadyAborted.abort()
+            await assert.rejects(
+                resizeSkinTextures(
+                    source,
+                    ['first'],
+                    pixels(200),
+                    undefined,
+                    undefined,
+                    alreadyAborted.signal,
+                ),
+                { name: 'AbortError' },
+            )
+        },
+    )
+
+    await t.test('cached batches yield to queued input before completing', async (t) => {
+        let clock = 0
+        t.mock.method(performance, 'now', () => clock++)
+        const controller = new AbortController()
+        const sprites = Array.from({ length: 100 }, (_, i) => sprite(`sprite-${i}`, 'wide'))
+        const source = new Map([['first', skin(sprites)]])
+        let completed = 0
+        await assert.rejects(
+            resizeSkinTextures(
+                source,
+                ['first'],
+                pixels(200),
+                undefined,
+                (done) => {
+                    completed = done
+                    if (done === 1) setTimeout(() => controller.abort(), 0)
+                },
+                controller.signal,
+            ),
+            { name: 'AbortError' },
+        )
+        assert.ok(completed > 0 && completed < sprites.length)
+    })
 })

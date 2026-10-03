@@ -74,56 +74,79 @@ export async function resizeSkinTextures(
     options: SkinResizeOptions,
     spriteNames?: string[],
     onProgress?: (completed: number, total: number) => void,
+    signal?: AbortSignal,
 ): Promise<SkinResizeResult> {
     const error = validateSkinResizeOptions(options)
     if (error) throw new Error(error)
 
-    const selectedSkins = new Set(skinNames)
+    signal?.throwIfAborted()
     const selectedSprites = spriteNames === undefined ? undefined : new Set(spriteNames)
-    const targets = [...source].flatMap(([skinName, skin]) =>
-        selectedSkins.has(skinName)
-            ? skin.data.sprites.flatMap((sprite, index) =>
-                  !selectedSprites || selectedSprites.has(sprite.name)
-                      ? [{ skinName, skin, sprite, index }]
-                      : [],
-              )
-            : [],
-    )
+    const targets = [...new Set(skinNames)].flatMap((skinName) => {
+        const skin = source.get(skinName)
+        if (!skin) return []
+        return skin.data.sprites.flatMap((sprite, index) =>
+            !selectedSprites || selectedSprites.has(sprite.name)
+                ? [{ skinName, skin, sprite, index }]
+                : [],
+        )
+    })
     const cache = new Map<string, Blob | undefined>()
     const changes: { skinName: string; index: number; blob: Blob }[] = []
     let skipped = 0
+    let canvas: HTMLCanvasElement | undefined
+    let context: CanvasRenderingContext2D | null = null
+    let lastYield = performance.now()
     onProgress?.(0, targets.length)
+    // Let the busy state paint before drawing, including when images are already cached.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0))
 
-    for (const [i, { skinName, skin, sprite, index }] of targets.entries()) {
-        if (!sprite.texture) {
-            skipped++
-            onProgress?.(i + 1, targets.length)
-            continue
-        }
-
-        const key = `${Number(skin.data.interpolation)}:${sprite.texture}`
-        if (!cache.has(key)) {
-            const { img, width, height } = await getImageInfo(sprite.texture)
-            const dimensions = getSkinResizeDimensions(width, height, options)
-            let blob: Blob | undefined
-            if (dimensions) {
-                const canvas = document.createElement('canvas')
-                canvas.width = dimensions.width
-                canvas.height = dimensions.height
-                const context = canvas.getContext('2d')
-                if (!context) throw new Error('Failed to obtain canvas context')
-                context.imageSmoothingEnabled = skin.data.interpolation
-                context.imageSmoothingQuality = 'high'
-                context.drawImage(img, 0, 0, canvas.width, canvas.height)
-                blob = await getBlob(canvas)
+    try {
+        for (const [i, { skinName, skin, sprite, index }] of targets.entries()) {
+            if (performance.now() - lastYield >= 8) {
+                await new Promise<void>((resolve) => setTimeout(resolve, 0))
+                lastYield = performance.now()
             }
-            cache.set(key, blob)
+            signal?.throwIfAborted()
+            if (!sprite.texture) {
+                skipped++
+                onProgress?.(i + 1, targets.length)
+                continue
+            }
+
+            const key = `${Number(skin.data.interpolation)}:${sprite.texture}`
+            if (!cache.has(key)) {
+                const { img, width, height } = await getImageInfo(sprite.texture)
+                signal?.throwIfAborted()
+                const dimensions = getSkinResizeDimensions(width, height, options)
+                let blob: Blob | undefined
+                if (dimensions) {
+                    canvas ??= document.createElement('canvas')
+                    context ??= canvas.getContext('2d')
+                    if (!context) throw new Error('Failed to obtain canvas context')
+                    if (canvas.width !== dimensions.width) canvas.width = dimensions.width
+                    if (canvas.height !== dimensions.height) canvas.height = dimensions.height
+                    context.clearRect(0, 0, canvas.width, canvas.height)
+                    context.imageSmoothingEnabled = skin.data.interpolation
+                    context.imageSmoothingQuality = 'high'
+                    context.drawImage(img, 0, 0, canvas.width, canvas.height)
+                    blob = await getBlob(canvas)
+                    signal?.throwIfAborted()
+                }
+                cache.set(key, blob)
+            }
+            const blob = cache.get(key)
+            if (blob) changes.push({ skinName, index, blob })
+            else skipped++
+            onProgress?.(i + 1, targets.length)
         }
-        const blob = cache.get(key)
-        if (blob) changes.push({ skinName, index, blob })
-        else skipped++
-        onProgress?.(i + 1, targets.length)
+    } finally {
+        // Release the backing buffer on success, cancellation, or failure.
+        if (canvas) {
+            canvas.width = 0
+            canvas.height = 0
+        }
     }
+    signal?.throwIfAborted()
 
     // Register textures only once all image processing has succeeded, then commit as one edit.
     const skins = new Map(source)

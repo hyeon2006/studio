@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { type Project } from '../../core/project'
 import {
     resizeSkinTextures,
@@ -30,6 +30,12 @@ const busy = ref(false)
 const completed = ref(0)
 const total = ref(0)
 const processingError = ref('')
+let controller: AbortController | undefined
+let disposed = false
+onBeforeUnmount(() => {
+    disposed = true
+    controller?.abort()
+})
 const options = computed<SkinResizeOptions>(() =>
     mode.value === 'percentage'
         ? { mode: 'percentage', percentage: Number(percentage.value) }
@@ -45,6 +51,8 @@ const validationError = computed(() => validateSkinResizeOptions(options.value))
 async function apply() {
     if (busy.value || validationError.value) return
     busy.value = true
+    const operation = new AbortController()
+    controller = operation
     processingError.value = ''
     try {
         const result = await resizeSkinTextures(
@@ -56,14 +64,24 @@ async function apply() {
                 completed.value = done
                 total.value = count
             },
+            operation.signal,
         )
-        emit('close', result)
+        if (!disposed) emit('close', result)
     } catch {
-        processingError.value =
-            'Could not resize the selected images. Check their textures and try again.'
+        if (operation.signal.aborted) {
+            if (!disposed) emit('close')
+        } else
+            processingError.value =
+                'Could not resize the selected images. Check their textures and try again.'
     } finally {
         busy.value = false
+        controller = undefined
     }
+}
+
+function cancel() {
+    if (busy.value) controller?.abort()
+    else emit('close')
 }
 </script>
 
@@ -156,13 +174,7 @@ async function apply() {
             Resizing images… {{ completed }} / {{ total }}
         </p>
         <template #actions>
-            <MyButton
-                class="w-24"
-                :icon="IconTimes"
-                text="Cancel"
-                :disabled="busy"
-                @click="emit('close')"
-            />
+            <MyButton class="w-24" :icon="IconTimes" text="Cancel" @click="cancel" />
             <MyButton
                 class="ml-4 w-24"
                 :icon="IconCheck"
