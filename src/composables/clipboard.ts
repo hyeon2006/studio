@@ -1,3 +1,4 @@
+import { newId } from '../core/id'
 import { packRaw } from '../core/utils'
 import { toast } from './toast'
 
@@ -269,42 +270,34 @@ async function resolveDependencies(root: HasSprites, dependencies: Sprite[]) {
     const rootSpriteHashes = new Map<string, string>()
 
     const getRootSpriteHash = async (sprite: Sprite) => {
-        if (rootSpriteHashes.has(sprite.id)) return rootSpriteHashes.get(sprite.id)!
-        const hash = await getHash(sprite.texture as string)
-        rootSpriteHashes.set(sprite.id, hash)
+        const texture = sprite.texture as string
+        if (rootSpriteHashes.has(texture)) return rootSpriteHashes.get(texture)!
+        const hash = await getHash(texture)
+        rootSpriteHashes.set(texture, hash)
         return hash
     }
 
     for (const depSprite of dependencies) {
-        const existingIndex = root.data.sprites.findIndex((s) => s.id === depSprite.id)
-        if (existingIndex !== -1) {
-            root.data.sprites.splice(existingIndex, 1, depSprite)
-            console.log(`Overwrote existing sprite: ${depSprite.id}`)
-            continue
-        }
-
-        const depHash = await getHash(depSprite.texture as string)
-        if (!depHash) {
-            root.data.sprites.push(depSprite)
-            console.log(`Auto-added missing sprite (no hash): ${depSprite.id}`)
-            continue
-        }
-
-        let foundMatch: Sprite | undefined
-        for (const s of root.data.sprites) {
-            const sHash = await getRootSpriteHash(s)
-            if (sHash === depHash) {
-                foundMatch = s
-                break
+        const depHash = await getRootSpriteHash(depSprite)
+        let existingIndex = -1
+        if (depHash) {
+            for (const [index, sprite] of root.data.sprites.entries()) {
+                if ((await getRootSpriteHash(sprite)) === depHash) {
+                    existingIndex = index
+                    break
+                }
             }
         }
 
-        if (foundMatch) {
-            console.log(`Reused existing sprite: ${depSprite.id} -> ${foundMatch.id}`)
-            idReplacement.set(depSprite.id, foundMatch.id)
+        if (existingIndex !== -1) {
+            const existingId = root.data.sprites[existingIndex]!.id
+            root.data.sprites.splice(existingIndex, 1, { ...depSprite, id: existingId })
+            idReplacement.set(depSprite.id, existingId)
         } else {
-            root.data.sprites.push(depSprite)
-            console.log(`Auto-added missing sprite: ${depSprite.id}`)
+            let id = newId()
+            while (root.data.sprites.some((sprite) => sprite.id === id)) id = newId()
+            root.data.sprites.push({ ...depSprite, id })
+            idReplacement.set(depSprite.id, id)
         }
     }
 
