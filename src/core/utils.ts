@@ -148,7 +148,7 @@ export async function packJson<T>(json: T) {
 
 export async function unpackJson<T>(data: Blob): Promise<T> {
     return JSON.parse(
-        new TextDecoder().decode(ungzip(new Uint8Array(await toArrayBuffer(data)))),
+        new TextDecoder().decode(ungzip(new Uint8Array(await data.arrayBuffer()))),
     ) as never
 }
 
@@ -156,15 +156,4 @@ async function hash(data: BufferSource) {
     return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1', data)))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('')
-}
-
-function toArrayBuffer(blob: Blob) {
-    return new Promise<ArrayBuffer>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-            resolve(reader.result as ArrayBuffer)
-        }
-        reader.onerror = reject
-        reader.readAsArrayBuffer(blob)
-    })
 }

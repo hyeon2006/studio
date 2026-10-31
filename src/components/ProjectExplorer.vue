@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { useVirtualList } from '@vueuse/core'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
     type ExplorerItem,
     isOpened,
@@ -28,6 +29,12 @@ import { resolveViewInfo } from './ViewManager'
 
 const { project, view, isExplorerOpened, sidebarWidth } = useState()
 const { tree } = useExplorer()
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(tree, {
+    itemHeight: 32,
+    overscan: 8,
+})
+
+watch(searchQuery, () => scrollTo(0), { flush: 'post' })
 
 const isResizing = ref(false)
 const isDesktop = ref(window.innerWidth >= 640)
@@ -35,13 +42,24 @@ const activeItem = ref<string>('')
 
 watch(
     () => toKey(view.value),
-    () => {
+    async () => {
         if (!resolveViewInfo(project.value, view.value)) return
 
         const path: string[] = []
         for (const part of view.value) {
             path.push(part)
             open(path)
+        }
+        await nextTick()
+        const index = tree.value.findIndex((item) => isPathCurrentView(item.path))
+        const container = containerProps.ref.value
+        if (index >= 0 && container) {
+            const top = index * 32
+            if (
+                top < container.scrollTop ||
+                top + 32 > container.scrollTop + container.clientHeight
+            )
+                scrollTo(index)
         }
     },
     { immediate: true },
@@ -154,165 +172,171 @@ function stopResize() {
                     <IconTimes class="icon" />
                 </button>
             </div>
-            <div class="scrollbar min-h-0 flex-1 overflow-y-auto" role="tree">
-                <div
-                    v-for="item in tree"
-                    :key="toKey(item.path)"
-                    class="transparent-clickable group relative mx-1 flex h-8 items-center rounded-md"
-                    :class="{
-                        'bg-sonolus-ui-button-normal': isPathCurrentView(item.path),
-                    }"
-                    role="treeitem"
-                    tabindex="0"
-                    :aria-current="isPathCurrentView(item.path) ? 'page' : undefined"
-                    :aria-level="item.level + 1"
-                    :aria-expanded="item.hasChildren ? isOpened(item.path) : undefined"
-                    @click="onClick(item)"
-                    @keydown.enter.self.prevent="onClick(item)"
-                    @keydown.space.self.prevent="onClick(item)"
-                >
+            <div
+                v-bind="containerProps"
+                class="scrollbar min-h-0 flex-1 overflow-y-auto"
+                role="tree"
+            >
+                <div v-bind="wrapperProps">
                     <div
-                        v-if="isPathCurrentView(item.path)"
-                        class="absolute top-1.5 bottom-1.5 left-0.5 w-0.5 rounded-full bg-sonolus-glow"
-                    />
-                    <button
-                        class="h-full flex-none pr-2"
+                        v-for="{ data: item } in list"
+                        :key="toKey(item.path)"
+                        class="transparent-clickable group relative mx-1 flex h-8 items-center rounded-md"
                         :class="{
-                            'pl-2': item.level === 0,
-                            'pl-4': item.level === 1,
-                            'pl-8': item.level === 2,
-                            'pl-12': item.level === 3,
-                            'pl-16': item.level === 4,
-                            'pl-20': item.level === 5,
-                            'pointer-events-none opacity-0': !item.hasChildren,
+                            'bg-sonolus-ui-button-normal': isPathCurrentView(item.path),
                         }"
-                        :title="isOpened(item.path) ? 'Collapse' : 'Expand'"
-                        :aria-label="`${isOpened(item.path) ? 'Collapse' : 'Expand'} ${item.title}`"
-                        :aria-expanded="isOpened(item.path)"
-                        @click.stop="toggle(item.path)"
+                        role="treeitem"
+                        tabindex="0"
+                        :aria-current="isPathCurrentView(item.path) ? 'page' : undefined"
+                        :aria-level="item.level + 1"
+                        :aria-expanded="item.hasChildren ? isOpened(item.path) : undefined"
+                        @click="onClick(item)"
+                        @keydown.enter.self.prevent="onClick(item)"
+                        @keydown.space.self.prevent="onClick(item)"
                     >
-                        <component
-                            :is="isOpened(item.path) ? IconAngleDown : IconAngleRight"
-                            class="icon"
+                        <div
+                            v-if="isPathCurrentView(item.path)"
+                            class="absolute top-1.5 bottom-1.5 left-0.5 w-0.5 rounded-full bg-sonolus-glow"
                         />
-                    </button>
-                    <MyImageIcon
-                        v-if="typeof item.icon === 'string'"
-                        class="icon flex-none"
-                        :src="item.icon"
-                        :fallback="item.fallback || IconFile"
-                        fill
-                    />
-                    <component :is="item.icon || item.fallback" v-else class="icon flex-none" />
-                    <div class="ml-2 flex-1 truncate text-left">
-                        {{ item.title }}
-                    </div>
-                    <div
-                        class="flex h-full flex-none items-center transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
-                        :class="{
-                            'sm:!opacity-100': activeItem === toKey(item.path),
-                        }"
-                    >
-                        <template v-if="activeItem !== toKey(item.path)">
-                            <button
-                                v-if="item.onNew"
-                                class="h-full px-2"
-                                :title="`New in ${item.title}`"
-                                :aria-label="`New in ${item.title}`"
-                                @click.stop="item.onNew?.()"
-                            >
-                                <IconPlus class="icon" />
-                            </button>
-                            <button
-                                v-if="item.onRename"
-                                class="h-full px-2"
-                                :title="`Rename ${item.title}`"
-                                :aria-label="`Rename ${item.title}`"
-                                @click.stop="item.onRename?.()"
-                            >
-                                <IconEdit class="icon" />
-                            </button>
-                            <button
-                                v-if="item.onDelete"
-                                class="h-full px-2"
-                                :title="`Delete ${item.title}`"
-                                :aria-label="`Delete ${item.title}`"
-                                @click.stop="confirmDelete(item)"
-                            >
-                                <IconTrash class="icon" />
-                            </button>
-                            <button
-                                v-if="
-                                    item.onClone ||
-                                    item.onCopy ||
-                                    item.onPaste ||
-                                    item.onMoveUp ||
-                                    item.onMoveDown
-                                "
-                                class="h-full px-2"
-                                :title="`More actions for ${item.title}`"
-                                :aria-label="`More actions for ${item.title}`"
-                                :aria-expanded="activeItem === toKey(item.path)"
-                                @click.stop="toggleMore(toKey(item.path))"
-                            >
-                                <IconList class="icon" />
-                            </button>
-                        </template>
-                        <template v-else>
-                            <button
-                                v-if="item.onMoveUp"
-                                class="h-full px-2"
-                                :title="`Move ${item.title} up in saved order`"
-                                :aria-label="`Move ${item.title} up in saved order`"
-                                @click.stop="item.onMoveUp?.()"
-                            >
-                                <IconAngleDown class="icon rotate-180" />
-                            </button>
-                            <button
-                                v-if="item.onMoveDown"
-                                class="h-full px-2"
-                                :title="`Move ${item.title} down in saved order`"
-                                :aria-label="`Move ${item.title} down in saved order`"
-                                @click.stop="item.onMoveDown?.()"
-                            >
-                                <IconAngleDown class="icon" />
-                            </button>
-                            <button
-                                v-if="item.onClone"
-                                class="h-full px-2"
-                                :title="`Clone ${item.title}`"
-                                :aria-label="`Clone ${item.title}`"
-                                @click.stop="item.onClone?.()"
-                            >
-                                <IconClone class="icon" />
-                            </button>
-                            <button
-                                v-if="item.onCopy"
-                                class="h-full px-2"
-                                :title="`Copy ${item.title}`"
-                                :aria-label="`Copy ${item.title}`"
-                                @click.stop="item.onCopy?.()"
-                            >
-                                <IconBox class="icon" />
-                            </button>
-                            <button
-                                v-if="item.onPaste"
-                                class="h-full px-2"
-                                :title="`Paste into ${item.title}`"
-                                :aria-label="`Paste into ${item.title}`"
-                                @click.stop="item.onPaste?.()"
-                            >
-                                <IconFile class="icon" />
-                            </button>
-                            <button
-                                class="h-full px-2"
-                                title="Close actions"
-                                aria-label="Close actions"
-                                @click.stop="toggleMore(toKey(item.path))"
-                            >
-                                <IconTimes class="icon" />
-                            </button>
-                        </template>
+                        <button
+                            class="h-full flex-none pr-2"
+                            :class="{
+                                'pl-2': item.level === 0,
+                                'pl-4': item.level === 1,
+                                'pl-8': item.level === 2,
+                                'pl-12': item.level === 3,
+                                'pl-16': item.level === 4,
+                                'pl-20': item.level === 5,
+                                'pointer-events-none opacity-0': !item.hasChildren,
+                            }"
+                            :title="isOpened(item.path) ? 'Collapse' : 'Expand'"
+                            :aria-label="`${isOpened(item.path) ? 'Collapse' : 'Expand'} ${item.title}`"
+                            :aria-expanded="isOpened(item.path)"
+                            @click.stop="toggle(item.path)"
+                        >
+                            <component
+                                :is="isOpened(item.path) ? IconAngleDown : IconAngleRight"
+                                class="icon"
+                            />
+                        </button>
+                        <MyImageIcon
+                            v-if="typeof item.icon === 'string'"
+                            class="icon flex-none"
+                            :src="item.icon"
+                            :fallback="item.fallback || IconFile"
+                            fill
+                        />
+                        <component :is="item.icon || item.fallback" v-else class="icon flex-none" />
+                        <div class="ml-2 flex-1 truncate text-left">
+                            {{ item.title }}
+                        </div>
+                        <div
+                            class="flex h-full flex-none items-center transition-opacity duration-200 group-hover:opacity-100 sm:opacity-0"
+                            :class="{
+                                'sm:!opacity-100': activeItem === toKey(item.path),
+                            }"
+                        >
+                            <template v-if="activeItem !== toKey(item.path)">
+                                <button
+                                    v-if="item.onNew"
+                                    class="h-full px-2"
+                                    :title="`New in ${item.title}`"
+                                    :aria-label="`New in ${item.title}`"
+                                    @click.stop="item.onNew?.()"
+                                >
+                                    <IconPlus class="icon" />
+                                </button>
+                                <button
+                                    v-if="item.onRename"
+                                    class="h-full px-2"
+                                    :title="`Rename ${item.title}`"
+                                    :aria-label="`Rename ${item.title}`"
+                                    @click.stop="item.onRename?.()"
+                                >
+                                    <IconEdit class="icon" />
+                                </button>
+                                <button
+                                    v-if="item.onDelete"
+                                    class="h-full px-2"
+                                    :title="`Delete ${item.title}`"
+                                    :aria-label="`Delete ${item.title}`"
+                                    @click.stop="confirmDelete(item)"
+                                >
+                                    <IconTrash class="icon" />
+                                </button>
+                                <button
+                                    v-if="
+                                        item.onClone ||
+                                        item.onCopy ||
+                                        item.onPaste ||
+                                        item.onMoveUp ||
+                                        item.onMoveDown
+                                    "
+                                    class="h-full px-2"
+                                    :title="`More actions for ${item.title}`"
+                                    :aria-label="`More actions for ${item.title}`"
+                                    :aria-expanded="activeItem === toKey(item.path)"
+                                    @click.stop="toggleMore(toKey(item.path))"
+                                >
+                                    <IconList class="icon" />
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button
+                                    v-if="item.onMoveUp"
+                                    class="h-full px-2"
+                                    :title="`Move ${item.title} up in saved order`"
+                                    :aria-label="`Move ${item.title} up in saved order`"
+                                    @click.stop="item.onMoveUp?.()"
+                                >
+                                    <IconAngleDown class="icon rotate-180" />
+                                </button>
+                                <button
+                                    v-if="item.onMoveDown"
+                                    class="h-full px-2"
+                                    :title="`Move ${item.title} down in saved order`"
+                                    :aria-label="`Move ${item.title} down in saved order`"
+                                    @click.stop="item.onMoveDown?.()"
+                                >
+                                    <IconAngleDown class="icon" />
+                                </button>
+                                <button
+                                    v-if="item.onClone"
+                                    class="h-full px-2"
+                                    :title="`Clone ${item.title}`"
+                                    :aria-label="`Clone ${item.title}`"
+                                    @click.stop="item.onClone?.()"
+                                >
+                                    <IconClone class="icon" />
+                                </button>
+                                <button
+                                    v-if="item.onCopy"
+                                    class="h-full px-2"
+                                    :title="`Copy ${item.title}`"
+                                    :aria-label="`Copy ${item.title}`"
+                                    @click.stop="item.onCopy?.()"
+                                >
+                                    <IconBox class="icon" />
+                                </button>
+                                <button
+                                    v-if="item.onPaste"
+                                    class="h-full px-2"
+                                    :title="`Paste into ${item.title}`"
+                                    :aria-label="`Paste into ${item.title}`"
+                                    @click.stop="item.onPaste?.()"
+                                >
+                                    <IconFile class="icon" />
+                                </button>
+                                <button
+                                    class="h-full px-2"
+                                    title="Close actions"
+                                    aria-label="Close actions"
+                                    @click.stop="toggleMore(toKey(item.path))"
+                                >
+                                    <IconTimes class="icon" />
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 </div>
                 <div

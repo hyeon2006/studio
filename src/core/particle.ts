@@ -14,7 +14,15 @@ import { bakeSprite, tryCalculateLayout } from './sprite-sheet'
 import { load } from './storage'
 import { type ProjectTag, packTags, unpackTags } from './tag'
 import { allZero as allZeroTransform, type TransformExpression } from './transform-expression'
-import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
+import {
+    emptySrl,
+    evictImageInfo,
+    getBlob,
+    getImageInfo,
+    packJson,
+    packRaw,
+    unpackJson,
+} from './utils'
 
 export interface ParticleDataGroup {
     name: string
@@ -505,7 +513,10 @@ export function unpackParticles(process: UnpackProcess) {
     })
 }
 
-function unpackParticle({ project, tasks, canvas, getRaw, getJson }: UnpackProcess, name: string) {
+function unpackParticle(
+    { project, tasks, extractSprite, getRaw, getJson }: UnpackProcess,
+    name: string,
+) {
     tasks.push({
         description: `Loading particle "${name}" details...`,
         async execute() {
@@ -533,8 +544,12 @@ function unpackParticle({ project, tasks, canvas, getRaw, getJson }: UnpackProce
                 description: `Unpacking particle "${name}" texture...`,
                 async execute() {
                     const url = URL.createObjectURL(await getRaw(details.item.texture.url))
-                    img = (await getImageInfo(url)).img
-                    URL.revokeObjectURL(url)
+                    try {
+                        img = (await getImageInfo(url)).img
+                    } finally {
+                        evictImageInfo(url)
+                        URL.revokeObjectURL(url)
+                    }
                 },
             })
 
@@ -551,18 +566,12 @@ function unpackParticle({ project, tasks, canvas, getRaw, getJson }: UnpackProce
                         const sprite = newParticleSprite(spriteId)
 
                         tasks.push({
-                            description: `Unpacking skin "${name}" sprite #${index + 1}...`,
+                            description: `Unpacking particle "${name}" sprite #${index + 1}...`,
+                            parallel: true,
                             async execute() {
                                 if (!img) throw new Error('Unexpected missing skin texture')
 
-                                const ctx = canvas.getContext('2d')
-                                if (!ctx) throw new Error('Failed to obtain canvas context')
-
-                                canvas.width = w
-                                canvas.height = h
-                                ctx.drawImage(img, x, y, w, h, 0, 0, w, h)
-
-                                sprite.texture = load(await getBlob(canvas))
+                                sprite.texture = await extractSprite(img, x, y, w, h)
                             },
                         })
 

@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { show } from '../../composables/modal'
 import { type Project, unpackPackage } from '../../core/project'
+import { runTasks } from '../../core/tasks'
 import IconSpinner from '../../icons/spinner-solid.svg?component'
 import IconTimes from '../../icons/times-solid.svg?component'
 import MyButton from '../ui/MyButton.vue'
@@ -32,7 +33,15 @@ onMounted(async () => {
     const { project, tasks, finish } = unpackPackage(props.data, el.value)
 
     try {
-        await runTasks(tasks)
+        await runTasks(
+            tasks,
+            (progress) => {
+                completed.value = progress.completed
+                total.value = progress.total
+                description.value = progress.description
+            },
+            () => aborted.value,
+        )
         if (aborted.value) return
 
         total.value = completed.value + 1
@@ -47,6 +56,8 @@ onMounted(async () => {
 
         emit('close', project)
     } catch (error) {
+        if (aborted.value) return
+
         void show(ModalErrorCancel, {
             message: error instanceof Error ? error.message : String(error),
         })
@@ -55,27 +66,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => (aborted.value = true))
-
-async function runTasks(tasks: { description: string; execute: () => void | Promise<void> }[]) {
-    let index = 0
-
-    while (index < tasks.length) {
-        const task = tasks[index]
-        if (!task) break
-
-        total.value = tasks.length
-        completed.value = index
-        description.value = `${task.description} (${index + 1}/${total.value})`
-        await nextTick()
-        await task.execute()
-
-        if (aborted.value) return
-
-        index++
-        total.value = tasks.length
-        completed.value = index
-    }
-}
 
 function cancel() {
     aborted.value = true

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:package-performance": "node --test --test-isolation=none scripts/package-performance.test.mjs",
     "test:clipboard": "node --test --test-isolation=none scripts/clipboard.test.mjs",
     "test:skin-resize": "node --test --test-isolation=none scripts/skin-resize.test.mjs",
     "test:ui-performance": "node --test --test-isolation=none scripts/ui-performance.test.mjs",

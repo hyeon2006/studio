@@ -26,4 +26,3 @@ interface DataTransferItem {
 interface FileSystemHandle {
     requestPermission?: (options: { mode: 'readwrite' }) => Promise<PermissionState>
 }
-

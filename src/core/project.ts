@@ -37,6 +37,8 @@ import {
 import { addSkinToWhitelist, hasSkinSprite, packSkins, type Skin, unpackSkins } from './skin'
 import { load } from './storage'
 import { packRaw } from './utils'
+import { createSpriteExtractor } from './sprite-extraction'
+import { type Task } from './tasks'
 
 export interface Project {
     view: string[]
@@ -151,10 +153,7 @@ export interface PackProcess {
     effects: EffectItem[]
     particles: ParticleItem[]
 
-    tasks: {
-        description: string
-        execute: () => void | Promise<void>
-    }[]
+    tasks: Task[]
 
     canvas: HTMLCanvasElement
 
@@ -306,22 +305,21 @@ export function packProject(project: Project, canvas: HTMLCanvasElement) {
 export interface UnpackProcess {
     project: Project
 
-    tasks: {
-        description: string
-        execute: () => void | Promise<void>
-    }[]
+    tasks: Task[]
 
     canvas: HTMLCanvasElement
 
+    extractSprite: ReturnType<typeof createSpriteExtractor>
     getRaw: (path: string | null | undefined) => Promise<Blob>
     getJson: <T>(path: string | null | undefined) => Promise<T>
     getJsonOptional: <T>(path: string | null | undefined) => Promise<T | undefined>
 
-    finish: () => Promise<void>
+    finish: () => void | Promise<void>
 }
 
 export function unpackPackage(file: File, canvas: HTMLCanvasElement) {
     let zip: JSZip
+    const rawCache = new Map<string, Promise<Blob>>()
 
     const process: UnpackProcess = {
         project: newProject(),
@@ -330,8 +328,17 @@ export function unpackPackage(file: File, canvas: HTMLCanvasElement) {
 
         canvas,
 
-        async getRaw(path: string | null | undefined) {
-            return await get(path).async('blob')
+        extractSprite: createSpriteExtractor(canvas),
+
+        getRaw(path: string | null | undefined) {
+            const file = get(path)
+            let result = rawCache.get(file.name)
+            if (!result) {
+                result = file.async('blob')
+                rawCache.set(file.name, result)
+                void result.catch(() => rawCache.delete(file.name))
+            }
+            return result
         },
         async getJson(path: string | null | undefined) {
             return JSON.parse(await get(path).async('string')) as never
@@ -343,8 +350,8 @@ export function unpackPackage(file: File, canvas: HTMLCanvasElement) {
             return JSON.parse(await file.async('string')) as never
         },
 
-        async finish() {
-            // No cleanup needed
+        finish() {
+            rawCache.clear()
         },
     }
 

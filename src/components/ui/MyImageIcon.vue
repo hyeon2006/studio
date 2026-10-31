@@ -25,6 +25,8 @@ function onError() {
         <img
             :key="src"
             :src="src"
+            loading="lazy"
+            decoding="async"
             class="h-full w-full"
             :class="fill ? 'object-fill' : 'object-contain'"
             @error="onError()"

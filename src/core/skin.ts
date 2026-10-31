@@ -10,7 +10,15 @@ import { type PackProcess, type Project, type UnpackProcess } from './project'
 import { bakeSprite, tryCalculateLayout } from './sprite-sheet'
 import { load } from './storage'
 import { type ProjectTag, packTags, unpackTags } from './tag'
-import { emptySrl, getBlob, getImageInfo, packJson, packRaw, unpackJson } from './utils'
+import {
+    emptySrl,
+    evictImageInfo,
+    getBlob,
+    getImageInfo,
+    packJson,
+    packRaw,
+    unpackJson,
+} from './utils'
 
 const allZero = { x1: 0, x2: 0, x3: 0, x4: 0, y1: 0, y2: 0, y3: 0, y4: 0 }
 const skinSpriteNameKeys = new Map<string, string>()
@@ -303,7 +311,10 @@ export function unpackSkins(process: UnpackProcess) {
     })
 }
 
-function unpackSkin({ project, tasks, canvas, getRaw, getJson }: UnpackProcess, name: string) {
+function unpackSkin(
+    { project, tasks, extractSprite, getRaw, getJson }: UnpackProcess,
+    name: string,
+) {
     tasks.push({
         description: `Loading skin "${name}" details...`,
         async execute() {
@@ -329,8 +340,12 @@ function unpackSkin({ project, tasks, canvas, getRaw, getJson }: UnpackProcess, 
                 description: `Unpacking skin "${name}" texture...`,
                 async execute() {
                     const url = URL.createObjectURL(await getRaw(details.item.texture.url))
-                    img = (await getImageInfo(url)).img
-                    URL.revokeObjectURL(url)
+                    try {
+                        img = (await getImageInfo(url)).img
+                    } finally {
+                        evictImageInfo(url)
+                        URL.revokeObjectURL(url)
+                    }
                 },
             })
 
@@ -358,17 +373,11 @@ function unpackSkin({ project, tasks, canvas, getRaw, getJson }: UnpackProcess, 
                             description: `Unpacking skin "${name}" sprite ${formatSkinSpriteName(
                                 spriteName,
                             )}...`,
+                            parallel: true,
                             async execute() {
                                 if (!img) throw new Error('Unexpected missing skin texture')
 
-                                const ctx = canvas.getContext('2d')
-                                if (!ctx) throw new Error('Failed to obtain canvas context')
-
-                                canvas.width = w
-                                canvas.height = h
-                                ctx.drawImage(img, x, y, w, h, 0, 0, w, h)
-
-                                sprite.texture = load(await getBlob(canvas))
+                                sprite.texture = await extractSprite(img, x, y, w, h)
                             },
                         })
 
