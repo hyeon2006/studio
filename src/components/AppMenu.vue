@@ -362,6 +362,25 @@ async function saveProject(saveAsNewFile: boolean) {
     const name = (!saveAsNewFile && fileName.value) || packageFileName()
     let handle = saveAsNewFile ? undefined : fileHandle.value
 
+    // Opening or dropping a file may grant read access only. Request write access
+    // before packing, while the Save click still grants user activation.
+    if (handle?.requestPermission) {
+        try {
+            const permission = await handle.requestPermission({ mode: 'readwrite' })
+            if (permission !== 'granted') {
+                toast('Write access was not granted. Please try Save As.', 'error')
+                return
+            }
+        } catch (err) {
+            if ((err as Error).name === 'AbortError') return
+
+            console.error(err)
+            const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+            toast(`Could not get write access (${detail}). Please try Save As.`, 'error')
+            return
+        }
+    }
+
     // Request the destination while the menu click still grants user activation.
     if (!handle && window.showSaveFilePicker) {
         try {
@@ -392,7 +411,8 @@ async function saveProject(saveAsNewFile: boolean) {
             if ((err as Error).name === 'AbortError') return
 
             console.error(err)
-            toast('Could not save the file. Please try Save As.', 'error')
+            const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err)
+            toast(`Could not save the file (${detail}). Please try Save As.`, 'error')
             return
         }
     } else {
@@ -562,3 +582,4 @@ function onKeyDown(e: KeyboardEvent) {
         </div>
     </div>
 </template>
+

@@ -22,3 +22,8 @@ interface Window {
 interface DataTransferItem {
     getAsFileSystemHandle?: () => Promise<FileSystemHandle | null>
 }
+
+interface FileSystemHandle {
+    requestPermission?: (options: { mode: 'readwrite' }) => Promise<PermissionState>
+}
+
