@@ -4,7 +4,7 @@ import { useVirtualList } from '@vueuse/core'
 import vue from '@vitejs/plugin-vue'
 import { createServer } from 'vite'
 import svgLoader from 'vite-svg-loader'
-import { effectScope, nextTick, ref, watchEffect } from 'vue'
+import { effectScope, isReactive, nextTick, ref, watchEffect } from 'vue'
 
 test('large selection lists and explorer search', async (t) => {
     const server = await createServer({
@@ -126,6 +126,50 @@ test('large selection lists and explorer search', async (t) => {
                 tree.value.some(({ path }) => path.length === 2),
                 false,
             )
+        },
+    )
+
+    await t.test(
+        'virtualized explorer rows keep icons raw and render a bounded window',
+        async () => {
+            const project = newProject()
+            const skin = newSkin()
+            skin.data.sprites = Array.from({ length: 5000 }, (_, i) => newSkinSprite(`sprite-${i}`))
+            project.skins.set('large', skin)
+            replace(project)
+            searchQuery.value = ''
+            open(['skins'])
+            open(['skins', 'large'])
+            open(['skins', 'large', 'sprites'])
+            const scope = effectScope()
+            try {
+                const { tree } = useExplorer()
+                const { list, containerProps, scrollTo } = scope.run(() =>
+                    useVirtualList(tree, { itemHeight: 32, overscan: 8 }),
+                )
+                containerProps.ref.value = {
+                    clientHeight: 640,
+                    scrollTop: 0,
+                    scrollTo({ top }) {
+                        this.scrollTop = top
+                    },
+                }
+                await nextTick()
+                assert.ok(tree.value.length > 5000)
+                assert.ok(list.value.length > 0 && list.value.length < 40)
+                const info = list.value.find(({ data }) => data.path[0] === 'info').data
+                assert.equal(isReactive(info), false)
+                assert.equal(isReactive(info.icon), false)
+                assert.equal(info, tree.value[0])
+                scrollTo(4000)
+                assert.ok(list.value.some(({ index }) => index === 4000))
+                searchQuery.value = 'sprite-4999'
+                await nextTick()
+                scrollTo(0)
+                assert.ok(list.value.some(({ data }) => data.path[3] === 'sprite-4999'))
+            } finally {
+                scope.stop()
+            }
         },
     )
 

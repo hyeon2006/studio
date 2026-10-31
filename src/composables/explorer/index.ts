@@ -90,7 +90,8 @@ export function useExplorer() {
             if (index >= 0 && index < state.project.value[type].size - 1)
                 item.onMoveDown = () => move(1)
         }
-        return items
+        // Virtual lists store rows in refs; keep action metadata and SVG components raw.
+        return items.map((item) => markRaw(item))
     })
     const tree = computed(() => {
         const items = allItems.value
